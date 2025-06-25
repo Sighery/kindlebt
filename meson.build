@@ -6,13 +6,6 @@ project(
   meson_version: '>=1.1'
 )
 
-cc = meson.get_compiler('cpp')
-
-kindle_root = get_option('kindle_root_dir')
-acebt_dep = declare_dependency(
-  dependencies: cc.find_library('ace_bt', dirs: join_paths(kindle_root, 'usr/lib'), required: true)
-)
-
 sources = files(
     './src/main.cpp',
 )
@@ -21,7 +14,15 @@ include_dirs = include_directories(
   './src/include/',
 )
 
-executable(
+cc = meson.get_compiler('cpp')
+
+kindle_root = get_option('kindle_root_dir')
+acebt_dep = declare_dependency(
+  dependencies: cc.find_library('ace_bt', dirs: join_paths(kindle_root, 'usr/lib'), required: true)
+)
+
+
+kindle_bt_api = executable(
   'kindle_bt_api',
   sources,
   include_directories: include_dirs,
@@ -30,4 +31,16 @@ executable(
   ],
   cpp_args: '-static-libstdc++',
   link_args: ['-static-libstdc++'],
+)
+
+custom_target(
+  'clean up libace_bt hard link',
+  depends: kindle_bt_api,
+  input: [
+    join_paths(kindle_root, 'usr/lib', 'libace_bt.so'),
+    kindle_bt_api,
+  ],
+  output: 'fake',
+  command: ['patchelf', '--replace-needed', '@INPUT0@', 'libace_bt.so', '@INPUT1@'],
+  build_by_default: true,
 )
