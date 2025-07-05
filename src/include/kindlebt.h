@@ -18,6 +18,9 @@ status_t closeSession(sessionHandle session_handle);
 status_t bleRegister(sessionHandle session_handle);
 status_t bleDeregister(sessionHandle session_handle);
 
+status_t bleRegisterGattClient(sessionHandle session_handle);
+status_t bleDeregisterGattClient(sessionHandle session_handle);
+
 #ifdef __cplusplus
 }
 #endif

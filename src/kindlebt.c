@@ -14,12 +14,13 @@ static bleCallbacks_t ble_callbacks = {
     .size = sizeof(bleCallbacks_t),
     .common_cbs =
         {
-            .size = sizeof(commonCallbacks_t), .adapter_state_cb = adapterStateCallback,
-            // .bond_state_cb = bondStateCallback,
+            .size = sizeof(commonCallbacks_t),
+            .adapter_state_cb = adapterStateCallback,
+            .bond_state_cb = bondStateCallback,
         },
     .ble_registered_cb = bleRegCallback,
-    // .connection_state_change_cb = bleConnStateChangedCallback,
-    // .on_ble_mtu_updated_cb = bleMtuUpdatedCallback,
+    .connection_state_change_cb = bleConnStateChangedCallback,
+    .on_ble_mtu_updated_cb = bleMtuUpdatedCallback,
 };
 
 bool isBLESupported(void) { return aceBT_isBLESupported(); };
@@ -53,4 +54,12 @@ status_t bleDeregister(sessionHandle session_handle) {
     );
 
     return ble_status;
+}
+
+status_t bleRegisterGattClient(sessionHandle session_handle) {
+    return aceBt_bleRegisterGattClient(session_handle, NULL, ACE_BT_BLE_APPID_GADGETS);
+}
+
+status_t bleDeregisterGattClient(sessionHandle session_handle) {
+    return aceBT_bleDeRegisterGattClient(session_handle);
 }

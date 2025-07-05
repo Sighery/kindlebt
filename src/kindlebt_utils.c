@@ -89,14 +89,14 @@ status_t utilsConvertStrToBdAddr(char* str, bdAddr_t* pAddr) {
     printf("str: %s\n", str);
 
     length = utilsConvertHexStrToByteArray(str, pAddr->address);
-    if (length != ACEBT_MAC_ADDR_LEN) {
+    if (length != MAC_ADDR_LEN) {
         return ACE_STATUS_BAD_PARAM;
     }
 
     return ACE_STATUS_OK;
 }
 
-void utilsPrintUuid(char* uuid_str, aceBT_uuid_t* uuid, int max) {
+void utilsPrintUuid(char* uuid_str, uuid_t* uuid, int max) {
     snprintf(
         uuid_str, max,
         "%02x %02x %02x %02x %02x %02x %02x %02x %02x"
