@@ -15,8 +15,11 @@ sessionType_t getSupportedSession(void);
 status_t openSession(sessionType_t session_type, sessionHandle* session_handle);
 status_t closeSession(sessionHandle session_handle);
 
+status_t bleRegister(sessionHandle session_handle);
+status_t bleDeregister(sessionHandle session_handle);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // KINDLE_BT_H
+#endif // KINDLE_BT_H
