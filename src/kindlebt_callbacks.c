@@ -79,10 +79,12 @@ void bleConnStateChangedCallback(
 
     if (status == ACEBT_GATT_STATUS_SUCCESS) {
         if (state == ACEBT_BLE_STATE_CONNECTED) {
+            printf("BLE device connected\n");
             setCallbackVariable(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected, true
             );
         } else if (state == ACEBT_BLE_STATE_DISCONNECTED) {
+            printf("BLE device disconnected\n");
             setCallbackVariable(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, true
             );

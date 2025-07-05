@@ -65,3 +65,21 @@ status_t bleRegisterGattClient(sessionHandle session_handle) {
 status_t bleDeregisterGattClient(sessionHandle session_handle) {
     return aceBT_bleDeRegisterGattClient(session_handle);
 }
+
+status_t bleConnect(
+    sessionHandle session_handle, bleConnHandle* connHandle, bdAddr_t* p_device,
+    bleConnParam_t conn_param, bleConnRole_t conn_role, bleConnPriority_t conn_priority
+) {
+    status_t conn_status =
+        aceBt_bleConnect(session_handle, p_device, conn_param, conn_role, false, conn_priority);
+    if (conn_status != ACE_STATUS_OK) return conn_status;
+
+    status_t cond_status =
+        waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected);
+
+    if (cond_status == ACE_STATUS_OK) *connHandle = conn_handle;
+
+    return cond_status;
+}
+
+status_t bleDisconnect(bleConnHandle connHandle) { return aceBT_bleDisconnect(connHandle); }

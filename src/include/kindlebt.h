@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "kindlebt_defines.h"
+#include "kindlebt_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +21,12 @@ status_t bleDeregister(sessionHandle session_handle);
 
 status_t bleRegisterGattClient(sessionHandle session_handle);
 status_t bleDeregisterGattClient(sessionHandle session_handle);
+
+status_t bleConnect(
+    sessionHandle session_handle, bleConnHandle* conn_handle, bdAddr_t* p_device,
+    bleConnParam_t conn_param, bleConnRole_t conn_role, bleConnPriority_t conn_priority
+);
+status_t bleDisconnect(bleConnHandle conn_handle);
 
 #ifdef __cplusplus
 }

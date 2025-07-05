@@ -28,6 +28,9 @@ typedef aceBT_sessionType_t sessionType_t;
 
 typedef aceBT_bleConnHandle bleConnHandle;
 typedef aceBT_bleConnState_t bleConnState_t;
+typedef aceBt_bleConnParam_t bleConnParam_t;
+typedef aceBT_bleConnRole_t bleConnRole_t;
+typedef aceBt_bleConnPriority_t bleConnPriority_t;
 
 typedef aceBT_gattStatus_t gattStatus_t;
 typedef aceBt_bleAppId_t bleAppId_t;
