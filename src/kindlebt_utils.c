@@ -107,14 +107,14 @@ void utilsPrintUuid(char* uuid_str, uuid_t* uuid, int max) {
     );
 }
 
-status_t waitForCondition(pthread_mutex_t* lock, pthread_cond_t* cond, bool flag) {
+status_t waitForCondition(pthread_mutex_t* lock, pthread_cond_t* cond, bool* flag) {
     struct timespec ts;
 
     clock_gettime(CLOCK_REALTIME, &ts);
     ts.tv_sec += 10;
 
     pthread_mutex_lock(lock);
-    while (!flag) {
+    while (!(*flag)) {
         int res = pthread_cond_timedwait(cond, lock, &ts);
         if (res == ETIMEDOUT) {
             pthread_mutex_unlock(lock);
