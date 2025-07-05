@@ -30,9 +30,5 @@ void bleRegCallback(status_t status) {
         setCallbackVariable(
             &callback_vars_lock, &callback_vars_cond, &callback_vars.ble_registered, true
         );
-        // pthread_mutex_lock(&callback_vars_lock);
-        // callback_vars.ble_registered = true;
-        // pthread_cond_signal(&callback_vars_cond);
-        // pthread_mutex_unlock(&callback_vars_lock);
     }
 }

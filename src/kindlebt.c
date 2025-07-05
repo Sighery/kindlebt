@@ -42,8 +42,6 @@ status_t bleRegister(sessionHandle session_handle) {
     if (ble_status != ACE_STATUS_OK) return ble_status;
 
     return waitForCondition(&callback_vars_lock, &callback_vars_cond, callback_vars.ble_registered);
-
-    return ACE_STATUS_OK;
 }
 
 status_t bleDeregister(sessionHandle session_handle) {
