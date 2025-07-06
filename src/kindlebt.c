@@ -25,6 +25,10 @@ static bleCallbacks_t ble_callbacks = {
 
 bool isBLESupported(void) { return aceBT_isBLESupported(); };
 
+status_t enableRadio(sessionHandle session_handle) { return aceBT_enableRadio(session_handle); }
+status_t disableRadio(sessionHandle session_handle) { return aceBT_disableRadio(session_handle); }
+status_t getRadioState(state_t* p_out_state) { return aceBT_getRadioState(p_out_state); }
+
 sessionType_t getSupportedSession(void) { return aceBT_getSupportedSession(); }
 
 status_t openSession(sessionType_t session_type, sessionHandle* session_handle) {

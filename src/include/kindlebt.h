@@ -12,6 +12,10 @@ extern "C" {
 
 bool isBLESupported(void);
 
+status_t enableRadio(sessionHandle session_handle);
+status_t disableRadio(sessionHandle session_handle);
+status_t getRadioState(state_t* p_out_state);
+
 sessionType_t getSupportedSession(void);
 status_t openSession(sessionType_t session_type, sessionHandle* session_handle);
 status_t closeSession(sessionHandle session_handle);
