@@ -1,7 +1,9 @@
+#include <inttypes.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <string.h>
 
+#include "kindlebt.h"
 #include "kindlebt_defines.h"
 
 #include "kindlebt_utils.c"
@@ -10,6 +12,9 @@ pthread_mutex_t callback_vars_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t callback_vars_cond = PTHREAD_COND_INITIALIZER;
 bleCallbackVars_t callback_vars;
 bleConnHandle conn_handle;
+// GATT get DB global variables
+uint32_t gNo_svc;
+bleGattsService_t* pGgatt_service = NULL;
 
 void adapterStateCallback(state_t state) {
     if (state == ACEBT_STATE_ENABLED) {
@@ -89,5 +94,28 @@ void bleConnStateChangedCallback(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, true
             );
         }
+    }
+}
+
+void bleGattcGetDbCallback(
+    bleConnHandle conn_handle, bleGattsService_t* gatt_service, uint32_t no_svc
+) {
+    printf("CLI callback : aceBt_bleGattcGetDbCallback() ");
+    printf("connHandle %p no_svc %" PRIu32 "\n", conn_handle, no_svc);
+
+    gNo_svc = no_svc;
+    status_t status = bleCloneGattService(&pGgatt_service, gatt_service, gNo_svc);
+
+    if (status == ACE_STATUS_OK) {
+        for (uint32_t i = 0; i < no_svc; i++) {
+            printf("GATT Database index :%" PRIu32 " %p \n", i, &pGgatt_service[i]);
+            utilsDumpServer(&pGgatt_service[i]);
+        }
+
+        setCallbackVariable(
+            &callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db, true
+        );
+    } else {
+        printf("Error copying GATT Database %d\n", status);
     }
 }

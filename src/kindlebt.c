@@ -23,6 +23,11 @@ static bleCallbacks_t ble_callbacks = {
     .on_ble_mtu_updated_cb = bleMtuUpdatedCallback,
 };
 
+static bleGattClientCallbacks_t gatt_client_callbacks = {
+    .size = sizeof(bleGattClientCallbacks_t),
+    .on_ble_gattc_get_gatt_db_cb = bleGattcGetDbCallback,
+};
+
 bool isBLESupported(void) { return aceBT_isBLESupported(); };
 
 status_t enableRadio(sessionHandle session_handle) { return aceBT_enableRadio(session_handle); }
@@ -63,11 +68,31 @@ status_t bleDeregister(sessionHandle session_handle) {
 }
 
 status_t bleRegisterGattClient(sessionHandle session_handle) {
-    return aceBt_bleRegisterGattClient(session_handle, NULL, ACE_BT_BLE_APPID_GADGETS);
+    return aceBt_bleRegisterGattClient(
+        session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
+    );
 }
 
 status_t bleDeregisterGattClient(sessionHandle session_handle) {
     return aceBT_bleDeRegisterGattClient(session_handle);
+}
+
+status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service) {
+    status_t db_status = aceBT_bleGetService(conn_handle);
+    if (db_status != ACE_STATUS_OK) return db_status;
+
+    status_t cond_status =
+        waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db);
+
+    if (cond_status == ACE_STATUS_OK) p_gatt_service = pGgatt_service;
+
+    return cond_status;
+}
+
+status_t bleCloneGattService(
+    bleGattsService_t** dst_gatt_service, const bleGattsService_t* src_gatt_service, int no_svc
+) {
+    return aceBT_bleCloneGattService(dst_gatt_service, src_gatt_service, no_svc);
 }
 
 status_t bleConnect(

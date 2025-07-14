@@ -34,6 +34,7 @@ typedef aceBt_bleConnPriority_t bleConnPriority_t;
 
 typedef aceBT_gattStatus_t gattStatus_t;
 typedef aceBt_bleAppId_t bleAppId_t;
+typedef aceBT_bleGattsService_t bleGattsService_t;
 
 typedef aceBT_commonCallbacks_t commonCallbacks_t;
 typedef aceBT_bleCallbacks_t bleCallbacks_t;
@@ -45,6 +46,7 @@ typedef struct {
     bool mtu_set;
     bool gattc_connected;
     bool gattc_disconnected;
+    bool got_gatt_db;
 } bleCallbackVars_t;
 
 #ifdef __cplusplus

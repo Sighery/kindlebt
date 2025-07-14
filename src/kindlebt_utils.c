@@ -107,6 +107,55 @@ void utilsPrintUuid(char* uuid_str, uuid_t* uuid, int max) {
     );
 }
 
+void utilsDumpServer(bleGattsService_t* server) {
+    if (!server) return;
+
+    // struct list_head* svc_list;
+    // struct list_head* char_list;
+    int inc_svc_count = 0;
+    char buff[PRINT_UUID_STR_LEN];
+    memset(buff, 0, sizeof(char) * PRINT_UUID_STR_LEN);
+    utilsPrintUuid(buff, &server->uuid, PRINT_UUID_STR_LEN);
+    printf("Service 0 uuid %s serviceType %d\n", buff, server->serviceType);
+
+    struct aceBT_gattIncSvcRec_t* svc_rec;
+    STAILQ_FOREACH(svc_rec, &server->incSvcList, link) {
+        memset(buff, 0, sizeof(char) * PRINT_UUID_STR_LEN);
+        utilsPrintUuid(buff, &svc_rec->value.uuid, PRINT_UUID_STR_LEN);
+        printf(
+            "Included Services %d service Type %d uuid %s\n", inc_svc_count++,
+            svc_rec->value.serviceType, buff
+        );
+    }
+    uint8_t char_count = 0;
+    struct aceBT_gattCharRec_t* char_rec = NULL;
+    STAILQ_FOREACH(char_rec, &server->charsList, link) {
+        memset(buff, 0, sizeof(char) * PRINT_UUID_STR_LEN);
+        utilsPrintUuid(buff, &char_rec->value.gattRecord.uuid, PRINT_UUID_STR_LEN);
+        if (char_rec->value.gattDescriptor.is_notify && char_rec->value.gattDescriptor.is_set) {
+            printf("\tGatt Characteristics with Notifications %d uuid %s\n", char_count++, buff);
+        } else {
+            printf("\tGatt Characteristics %d uuid %s\n", char_count++, buff);
+        }
+
+        if (char_rec->value.gattDescriptor.is_set) {
+            utilsPrintUuid(
+                buff, &char_rec->value.gattDescriptor.gattRecord.uuid, PRINT_UUID_STR_LEN
+            );
+            printf("\t\tDescriptor UUID %s\n", buff);
+
+        } else if (char_rec->value.multiDescCount) {
+            uint8_t desc_num = 1;
+            struct aceBT_gattDescRec_t* desc_rec = NULL;
+            /* Traverse descriptor linked list */
+            STAILQ_FOREACH(desc_rec, &char_rec->value.descList, link) {
+                utilsPrintUuid(buff, &desc_rec->value.gattRecord.uuid, PRINT_UUID_STR_LEN);
+                printf("\t\tDescriptor %d UUID %s\n", desc_num++, buff);
+            }
+        }
+    }
+}
+
 status_t waitForCondition(pthread_mutex_t* lock, pthread_cond_t* cond, bool* flag) {
     struct timespec ts;
 
