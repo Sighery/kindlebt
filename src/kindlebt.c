@@ -25,7 +25,7 @@ static bleCallbacks_t ble_callbacks = {
 
 static bleGattClientCallbacks_t gatt_client_callbacks = {
     .size = sizeof(bleGattClientCallbacks_t),
-    .on_ble_gattc_get_gatt_db_cb = bleGattcGetDbCallback,
+    .on_ble_gattc_get_gatt_db_cb = bleGattcGetDbCallbackWrapper,
 };
 
 bool isBLESupported(void) { return aceBT_isBLESupported(); };
@@ -67,7 +67,13 @@ status_t bleDeregister(sessionHandle session_handle) {
     return ble_status;
 }
 
-status_t bleRegisterGattClient(sessionHandle session_handle) {
+status_t bleRegisterGattClient(sessionHandle session_handle, bleGattClientCallbacks_t* callbacks) {
+    // If provided a callback struct, replace the local copy
+    // Applications can also just set the application callback directly
+    if (callbacks != NULL) {
+        application_gatt_client_callbacks = *callbacks;
+    }
+
     return aceBt_bleRegisterGattClient(
         session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
     );

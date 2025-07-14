@@ -6,6 +6,7 @@
 #include "kindlebt.h"
 #include "kindlebt_defines.h"
 
+#include "kindlebt_application.c"
 #include "kindlebt_utils.c"
 
 pthread_mutex_t callback_vars_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -117,5 +118,18 @@ void bleGattcGetDbCallback(
         );
     } else {
         printf("Error copying GATT Database %d\n", status);
+    }
+}
+
+// Wrappers needed for when we need to share callbacks between library and application
+void bleGattcGetDbCallbackWrapper(
+    bleConnHandle conn_handle, bleGattsService_t* gatt_service, uint32_t no_svc
+) {
+    bleGattcGetDbCallback(conn_handle, gatt_service, no_svc);
+
+    if (application_gatt_client_callbacks.on_ble_gattc_get_gatt_db_cb != NULL) {
+        application_gatt_client_callbacks.on_ble_gattc_get_gatt_db_cb(
+            conn_handle, gatt_service, no_svc
+        );
     }
 }

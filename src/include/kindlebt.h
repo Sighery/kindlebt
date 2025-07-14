@@ -23,7 +23,7 @@ status_t closeSession(sessionHandle session_handle);
 status_t bleRegister(sessionHandle session_handle);
 status_t bleDeregister(sessionHandle session_handle);
 
-status_t bleRegisterGattClient(sessionHandle session_handle);
+status_t bleRegisterGattClient(sessionHandle session_handle, bleGattClientCallbacks_t* callbacks);
 status_t bleDeregisterGattClient(sessionHandle session_handle);
 status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service);
 status_t bleCloneGattService(
