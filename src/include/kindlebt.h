@@ -36,6 +36,11 @@ status_t bleConnect(
 );
 status_t bleDisconnect(bleConnHandle conn_handle);
 
+status_t bleSetNotification(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value, bool enable
+);
+
 #ifdef __cplusplus
 }
 #endif

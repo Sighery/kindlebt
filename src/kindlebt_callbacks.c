@@ -12,7 +12,7 @@
 pthread_mutex_t callback_vars_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t callback_vars_cond = PTHREAD_COND_INITIALIZER;
 bleCallbackVars_t callback_vars;
-bleConnHandle conn_handle;
+bleConnHandle ble_conn_handle;
 // GATT get DB global variables
 uint32_t gNo_svc;
 bleGattsService_t* pGgatt_service = NULL;
@@ -55,9 +55,9 @@ void bondStateCallback(status_t status, bdAddr_t* p_remote_addr, aceBT_bondState
     }
 }
 
-void bleMtuUpdatedCallback(status_t status, bleConnHandle connHandle, int mtu) {
+void bleMtuUpdatedCallback(status_t status, bleConnHandle conn_handle, int mtu) {
     printf("Callback: bleMtuUpdatedCallback() status: %d ", status);
-    printf("mtu %d, connHandle %p\n", mtu, connHandle);
+    printf("mtu %d, conn_handle %p\n", mtu, conn_handle);
 
     if (status == ACE_STATUS_OK)
         setCallbackVariable(&callback_vars_lock, &callback_vars_cond, &callback_vars.mtu_set, true);
@@ -73,15 +73,15 @@ void bleRegCallback(status_t status) {
 }
 
 void bleConnStateChangedCallback(
-    bleConnState_t state, gattStatus_t status, const bleConnHandle connHandle, bdAddr_t* p_addr
+    bleConnState_t state, gattStatus_t status, const bleConnHandle conn_handle, bdAddr_t* p_addr
 ) {
     printf("Callback: bleConnStateChangedCallback() ");
     printf(
-        "state %d status %d connHandle %p addr %02x\n", state, status, connHandle,
+        "state %d status %d conn_handle %p addr %02x\n", state, status, conn_handle,
         p_addr->address[5]
     );
 
-    conn_handle = connHandle;
+    ble_conn_handle = conn_handle;
 
     if (status == ACEBT_GATT_STATUS_SUCCESS) {
         if (state == ACEBT_BLE_STATE_CONNECTED) {
@@ -121,6 +121,19 @@ void bleGattcGetDbCallback(
     }
 }
 
+void bleGattcNotifyCharsCallback(
+    bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value
+) {
+    printf("CLI callback: %s()\n", __func__);
+    printf("conn_handle %p\n", conn_handle);
+    char buff[256];
+    utilsPrintUuid(buff, &chars_value.gattRecord.uuid, 256);
+    printf("UUID:: %s\n", buff);
+    for (int idx = 0; idx < chars_value.blobValue.size; idx++)
+        printf("%x", chars_value.blobValue.data[idx]);
+    printf("\n");
+}
+
 // Wrappers needed for when we need to share callbacks between library and application
 void bleGattcGetDbCallbackWrapper(
     bleConnHandle conn_handle, bleGattsService_t* gatt_service, uint32_t no_svc
@@ -131,5 +144,15 @@ void bleGattcGetDbCallbackWrapper(
         application_gatt_client_callbacks.on_ble_gattc_get_gatt_db_cb(
             conn_handle, gatt_service, no_svc
         );
+    }
+}
+
+void bleGattcNotifyCharsCallbackWrapper(
+    bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value
+) {
+    bleGattcNotifyCharsCallback(conn_handle, chars_value);
+
+    if (application_gatt_client_callbacks.notify_characteristics_cb != NULL) {
+        application_gatt_client_callbacks.notify_characteristics_cb(conn_handle, chars_value);
     }
 }

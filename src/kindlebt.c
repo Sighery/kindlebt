@@ -26,6 +26,7 @@ static bleCallbacks_t ble_callbacks = {
 static bleGattClientCallbacks_t gatt_client_callbacks = {
     .size = sizeof(bleGattClientCallbacks_t),
     .on_ble_gattc_get_gatt_db_cb = bleGattcGetDbCallbackWrapper,
+    .notify_characteristics_cb = bleGattcNotifyCharsCallbackWrapper,
 };
 
 bool isBLESupported(void) { return aceBT_isBLESupported(); };
@@ -102,7 +103,7 @@ status_t bleCloneGattService(
 }
 
 status_t bleConnect(
-    sessionHandle session_handle, bleConnHandle* connHandle, bdAddr_t* p_device,
+    sessionHandle session_handle, bleConnHandle* conn_handle, bdAddr_t* p_device,
     bleConnParam_t conn_param, bleConnRole_t conn_role, bleConnPriority_t conn_priority
 ) {
     status_t conn_status =
@@ -112,9 +113,16 @@ status_t bleConnect(
     status_t cond_status =
         waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected);
 
-    if (cond_status == ACE_STATUS_OK) *connHandle = conn_handle;
+    if (cond_status == ACE_STATUS_OK) *conn_handle = ble_conn_handle;
 
     return cond_status;
 }
 
-status_t bleDisconnect(bleConnHandle connHandle) { return aceBT_bleDisconnect(connHandle); }
+status_t bleDisconnect(bleConnHandle conn_handle) { return aceBT_bleDisconnect(conn_handle); }
+
+status_t bleSetNotification(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value, bool enable
+) {
+    return aceBT_bleSetNotification(session_handle, conn_handle, chars_value, enable);
+}
