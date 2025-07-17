@@ -27,6 +27,8 @@ static bleGattClientCallbacks_t gatt_client_callbacks = {
     .size = sizeof(bleGattClientCallbacks_t),
     .on_ble_gattc_get_gatt_db_cb = bleGattcGetDbCallbackWrapper,
     .notify_characteristics_cb = bleGattcNotifyCharsCallbackWrapper,
+    .on_ble_gattc_read_characteristics_cb = bleGattcReadCharsCallbackWrapper,
+    .on_ble_gattc_write_characteristics_cb = bleGattcWriteCharsCallbackWrapper,
 };
 
 bool isBLESupported(void) { return aceBT_isBLESupported(); };
@@ -125,4 +127,27 @@ status_t bleSetNotification(
     bleGattCharacteristicsValue_t chars_value, bool enable
 ) {
     return aceBT_bleSetNotification(session_handle, conn_handle, chars_value, enable);
+}
+
+status_t bleReadCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value
+) {
+    return aceBT_bleReadCharacteristics(session_handle, conn_handle, chars_value);
+}
+
+status_t bleWriteCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+) {
+    // uint8_t data[] = {0x4F, 0x4E}; // ON
+    // uint8_t data[] = {0x4F, 0x46, 0x46}; // OFF
+
+    // chars_value->blobValue.data = malloc(sizeof(data));
+    // if (chars_value->blobValue.data != NULL) {
+    //     memcpy(chars_value->blobValue.data, data, sizeof(data));
+    //     chars_value->blobValue.size = sizeof(data);
+    //     chars_value->blobValue.offset = 0;
+    // }
+    return aceBT_bleWriteCharacteristics(session_handle, conn_handle, chars_value, request_type);
 }

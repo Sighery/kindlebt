@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -178,6 +179,42 @@ struct aceBT_gattCharRec_t* utilsFindCharRec(uuid_t uuid, uint8_t uuid_len) {
     }
     printf("GATT Characteristic UUID could not be found!\n");
     return (NULL);
+}
+
+void setGattBlobFromBytes(
+    bleGattCharacteristicsValue_t* chars_value, const uint8_t* data, uint16_t size
+) {
+    if (chars_value == NULL || data == NULL || size == 0) return;
+
+    free(chars_value->blobValue.data);
+
+    printf("createGattBlobFromBytes received length: %u\n", size);
+    printf("input bytes: ");
+    for (int i = 0; i < size; ++i) {
+        printf("0x%02X ", data[i]);
+    }
+    printf("\n");
+
+    uint8_t* blob = malloc(size);
+    if (blob == NULL) return;
+
+    printf("Did malloc\n");
+
+    memcpy(blob, data, size);
+
+    chars_value->blobValue.data = blob;
+    chars_value->blobValue.size = size;
+    chars_value->blobValue.offset = 0;
+    chars_value->format = BLE_FORMAT_BLOB;
+}
+
+void freeGattBlob(bleGattCharacteristicsValue_t* chars_value) {
+    if (chars_value == NULL || chars_value->blobValue.data == NULL) return;
+
+    free(chars_value->blobValue.data);
+    chars_value->blobValue.data = NULL;
+    chars_value->blobValue.size = 0;
+    chars_value->blobValue.offset = 0;
 }
 
 status_t waitForCondition(pthread_mutex_t* lock, pthread_cond_t* cond, bool* flag) {

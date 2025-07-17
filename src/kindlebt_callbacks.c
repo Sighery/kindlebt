@@ -134,6 +134,29 @@ void bleGattcNotifyCharsCallback(
     printf("\n");
 }
 
+void bleGattcReadCharsCallback(
+    bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value, status_t status
+) {
+    printf("CLI callback: bleGattcReadCharsCallback() status: %d\n", status);
+    printf("bleGattcReadCharsCallback - conn_handle %p\n", conn_handle);
+
+    char buff[256];
+    utilsPrintUuid(buff, &chars_value.gattRecord.uuid, 256);
+    printf("bleGattcReadCharsCallback - Characteristic UUID:: %s\n", buff);
+
+    printf("bleGattcReadCharsCallback - Characteristic value: ");
+    for (int idx = 0; idx < chars_value.blobValue.size; idx++)
+        printf("%02x", chars_value.blobValue.data[idx]);
+    printf("\n");
+}
+
+void bleGattcWriteCharsCallback(
+    bleConnHandle conn_handle, bleGattCharacteristicsValue_t gatt_characteristics, status_t status
+) {
+    printf("CLI callback: bleGattcWriteCharsCallback()\n");
+    printf("conn_handle %p gatt format %u\n", conn_handle, gatt_characteristics.format);
+}
+
 // Wrappers needed for when we need to share callbacks between library and application
 void bleGattcGetDbCallbackWrapper(
     bleConnHandle conn_handle, bleGattsService_t* gatt_service, uint32_t no_svc
@@ -154,5 +177,29 @@ void bleGattcNotifyCharsCallbackWrapper(
 
     if (application_gatt_client_callbacks.notify_characteristics_cb != NULL) {
         application_gatt_client_callbacks.notify_characteristics_cb(conn_handle, chars_value);
+    }
+}
+
+void bleGattcReadCharsCallbackWrapper(
+    bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value, status_t status
+) {
+    bleGattcReadCharsCallback(conn_handle, chars_value, status);
+
+    if (application_gatt_client_callbacks.on_ble_gattc_read_characteristics_cb != NULL) {
+        application_gatt_client_callbacks.on_ble_gattc_read_characteristics_cb(
+            conn_handle, chars_value, status
+        );
+    }
+}
+
+void bleGattcWriteCharsCallbackWrapper(
+    bleConnHandle conn_handle, bleGattCharacteristicsValue_t gatt_characteristics, status_t status
+) {
+    bleGattcWriteCharsCallback(conn_handle, gatt_characteristics, status);
+
+    if (application_gatt_client_callbacks.on_ble_gattc_write_characteristics_cb != NULL) {
+        application_gatt_client_callbacks.on_ble_gattc_write_characteristics_cb(
+            conn_handle, gatt_characteristics, status
+        );
     }
 }

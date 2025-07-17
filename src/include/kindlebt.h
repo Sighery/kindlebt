@@ -40,6 +40,14 @@ status_t bleSetNotification(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value, bool enable
 );
+status_t bleReadCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value
+);
+status_t bleWriteCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+);
 
 #ifdef __cplusplus
 }

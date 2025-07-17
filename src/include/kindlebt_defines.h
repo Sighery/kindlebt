@@ -33,6 +33,7 @@ typedef aceBT_bdAddr_t bdAddr_t;
 typedef aceBT_bondState_t bondState_t;
 typedef aceBT_UUIDType_t UUIDType_t;
 typedef aceBT_uuid_t uuid_t;
+typedef aceBT_responseType_t responseType_t;
 
 typedef aceBT_sessionHandle sessionHandle;
 typedef aceBT_sessionType_t sessionType_t;
