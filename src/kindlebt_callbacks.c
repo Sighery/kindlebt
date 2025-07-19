@@ -202,7 +202,7 @@ void bleGattcGetDbCallbackWrapper(
 void bleGattcNotifyCharsCallbackWrapper(
     bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value
 ) {
-    bleGattcNotifyCharsCallback(conn_handle, chars_value);
+    // bleGattcNotifyCharsCallback(conn_handle, chars_value);
 
     if (application_gatt_client_callbacks.notify_characteristics_cb != NULL) {
         application_gatt_client_callbacks.notify_characteristics_cb(conn_handle, chars_value);
@@ -212,7 +212,7 @@ void bleGattcNotifyCharsCallbackWrapper(
 void bleGattcReadCharsCallbackWrapper(
     bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value, status_t status
 ) {
-    bleGattcReadCharsCallback(conn_handle, chars_value, status);
+    // bleGattcReadCharsCallback(conn_handle, chars_value, status);
 
     if (application_gatt_client_callbacks.on_ble_gattc_read_characteristics_cb != NULL) {
         application_gatt_client_callbacks.on_ble_gattc_read_characteristics_cb(
@@ -224,7 +224,7 @@ void bleGattcReadCharsCallbackWrapper(
 void bleGattcWriteCharsCallbackWrapper(
     bleConnHandle conn_handle, bleGattCharacteristicsValue_t gatt_characteristics, status_t status
 ) {
-    bleGattcWriteCharsCallback(conn_handle, gatt_characteristics, status);
+    // bleGattcWriteCharsCallback(conn_handle, gatt_characteristics, status);
 
     if (application_gatt_client_callbacks.on_ble_gattc_write_characteristics_cb != NULL) {
         application_gatt_client_callbacks.on_ble_gattc_write_characteristics_cb(
