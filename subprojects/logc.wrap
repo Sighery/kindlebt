@@ -1,0 +1,5 @@
+[wrap-git]
+url = https://github.com/rxi/log.c.git
+revision = f9ea34994bd58ed342d2245cd4110bb5c6790153
+depth = 1
+patch_directory=logc

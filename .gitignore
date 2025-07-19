@@ -42,3 +42,6 @@
 
 # Build dirs
 .build*/
+
+# Subprojects
+subprojects/logc/

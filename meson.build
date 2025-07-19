@@ -6,8 +6,12 @@ project(
   meson_version: '>=1.1'
 )
 
+logc = subproject('logc')
+logc_dep = logc.get_variable('logc_dep')
+
 library_sources = files(
   './src/kindlebt.c',
+  './src/kindlebt_log.c',
 )
 binary_sources = files(
   './src/main.c',
@@ -29,6 +33,7 @@ kindlebt = shared_library(
     acebt_dep,
     ace_osal,
     pthread_dep,
+    logc_dep,
   ],
 )
 
@@ -63,7 +68,9 @@ kindlebt_test = executable(
   'kindlebt_test',
   binary_sources,
   include_directories: include_dirs,
-  dependencies: [],
+  dependencies: [
+    logc_dep,
+  ],
   link_with: [
     kindlebt,
   ],
