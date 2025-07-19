@@ -3,8 +3,11 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "log.h"
+
 #include "kindlebt.h"
 #include "kindlebt_defines.h"
+#include "kindlebt_log.h"
 
 #include "kindlebt_application.c"
 #include "kindlebt_utils.c"
@@ -19,12 +22,12 @@ bleGattsService_t* pGgatt_service = NULL;
 
 void adapterStateCallback(state_t state) {
     if (state == ACEBT_STATE_ENABLED) {
-        printf("Callback: adapter_state_callback() state: STATE_ENABLED\n");
+        log_debug("Callback %s(): state: STATE_ENABLED", __func__);
         setCallbackVariable(
             &callback_vars_lock, &callback_vars_cond, &callback_vars.bt_enabled, true
         );
     } else if (state == ACEBT_STATE_DISABLED) {
-        printf("Callback: adapter_state_callback() state: STATE_DISABLED\n");
+        log_debug("Callback %s(): state: STATE_DISABLED", __func__);
         setCallbackVariable(
             &callback_vars_lock, &callback_vars_cond, &callback_vars.bt_enabled, false
         );
@@ -38,33 +41,33 @@ void bondStateCallback(status_t status, bdAddr_t* p_remote_addr, aceBT_bondState
 
     switch (state) {
     case ACEBT_BOND_STATE_NONE:
-        printf("Callback: bond state changed() status: %d addr: %s state: NONE\n", status, addr);
+        log_debug("Callback %s(): status: %d addr: %s state: NONE", __func__, status, addr);
         break;
     case ACEBT_BOND_STATE_BONDING:
-        printf("Callback: bond state changed() status: %d addr: %s state: BONDING\n", status, addr);
+        log_debug("Callback %s(): status: %d addr: %s state: BONDING", __func__, status, addr);
         break;
     case ACEBT_BOND_STATE_BONDED:
-        printf("Callback: bond state changed() status: %d addr: %s state: BONDED\n", status, addr);
+        log_debug("Callback %s(): status: %d addr: %s state: BONDED", __func__, status, addr);
         break;
     default:
-        printf(
-            "Callback: bond state changed() status: %d addr: %s state: UNKNOWN(%d)\n", status, addr,
-            state
+        log_debug(
+            "Callback %s(): status: %d addr: %s state: UNKNOWN(%d)", __func__, status, addr, state
         );
         break;
     }
 }
 
 void bleMtuUpdatedCallback(status_t status, bleConnHandle conn_handle, int mtu) {
-    printf("Callback: bleMtuUpdatedCallback() status: %d ", status);
-    printf("mtu %d, conn_handle %p\n", mtu, conn_handle);
+    log_debug(
+        "Callback %s(): status %d, mtu %d, conn_handle %p", __func__, status, mtu, conn_handle
+    );
 
     if (status == ACE_STATUS_OK)
         setCallbackVariable(&callback_vars_lock, &callback_vars_cond, &callback_vars.mtu_set, true);
 }
 
 void bleRegCallback(status_t status) {
-    printf("Callback: bleRegCallback() status: %d\n", status);
+    log_debug("Callback %s(): status: %d\n", __func__, status);
 
     if (status == ACE_STATUS_OK)
         setCallbackVariable(
@@ -75,22 +78,24 @@ void bleRegCallback(status_t status) {
 void bleConnStateChangedCallback(
     bleConnState_t state, gattStatus_t status, const bleConnHandle conn_handle, bdAddr_t* p_addr
 ) {
-    printf("Callback: bleConnStateChangedCallback() ");
-    printf(
-        "state %d status %d conn_handle %p addr %02x\n", state, status, conn_handle,
-        p_addr->address[5]
+    char addr[MAC_ADDR_STR_LEN];
+    memset(addr, 0, MAC_ADDR_STR_LEN);
+    utilsConvertBdAddrToStr(p_addr, addr);
+    log_debug(
+        "Callback %s(): state %d, status %d, conn_handle %p addr %s", __func__, state, status,
+        conn_handle, addr
     );
 
     ble_conn_handle = conn_handle;
 
     if (status == ACEBT_GATT_STATUS_SUCCESS) {
         if (state == ACEBT_BLE_STATE_CONNECTED) {
-            printf("BLE device connected\n");
+            log_info("BLE device %s connected", addr);
             setCallbackVariable(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected, true
             );
         } else if (state == ACEBT_BLE_STATE_DISCONNECTED) {
-            printf("BLE device disconnected\n");
+            log_info("BLE device %s disconnected", addr);
             setCallbackVariable(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, true
             );
@@ -101,60 +106,84 @@ void bleConnStateChangedCallback(
 void bleGattcGetDbCallback(
     bleConnHandle conn_handle, bleGattsService_t* gatt_service, uint32_t no_svc
 ) {
-    printf("CLI callback : aceBt_bleGattcGetDbCallback() ");
-    printf("connHandle %p no_svc %" PRIu32 "\n", conn_handle, no_svc);
+    log_debug("Callback %s(): conn_handle %p no_svc %" PRIu32 "", __func__, conn_handle, no_svc);
 
     gNo_svc = no_svc;
     status_t status = bleCloneGattService(&pGgatt_service, gatt_service, gNo_svc);
 
-    if (status == ACE_STATUS_OK) {
-        for (uint32_t i = 0; i < no_svc; i++) {
-            printf("GATT Database index :%" PRIu32 " %p \n", i, &pGgatt_service[i]);
-            utilsDumpServer(&pGgatt_service[i]);
-        }
-
-        setCallbackVariable(
-            &callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db, true
-        );
-    } else {
-        printf("Error copying GATT Database %d\n", status);
+    if (status != ACE_STATUS_OK) {
+        log_error("Error copying GATT Database %d\n", status);
+        return;
     }
+
+    size_t size = 1024, offset = 0;
+    char* log_buff = malloc(size);
+    if (!log_buff) return;
+
+    for (uint32_t i = 0; i < no_svc; i++) {
+        log_buff = append_to_buffer(
+            log_buff, &size, &offset, "GATT Database index :%" PRIu32 " %p\n", i, &pGgatt_service[i]
+        );
+        log_buff = utilsDumpServer(&pGgatt_service[i], log_buff, &size, &offset);
+    }
+
+    log_debug("%s", log_buff);
+    free(log_buff);
+
+    setCallbackVariable(&callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db, true);
 }
 
 void bleGattcNotifyCharsCallback(
     bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value
 ) {
-    printf("CLI callback: %s()\n", __func__);
-    printf("conn_handle %p\n", conn_handle);
+    log_debug("Callback %s(): conn_handle %p", __func__, conn_handle);
+
     char buff[256];
     utilsPrintUuid(buff, &chars_value.gattRecord.uuid, 256);
-    printf("UUID:: %s\n", buff);
+    log_debug("%s() UUID:: %s", __func__, buff);
+
+    size_t size = 1024, offset = 0;
+    char* log_buff = malloc(size);
+    if (!log_buff) return;
+
+    log_buff = append_to_buffer(log_buff, &size, &offset, "%s() DATA:: ", __func__);
     for (int idx = 0; idx < chars_value.blobValue.size; idx++)
-        printf("%x", chars_value.blobValue.data[idx]);
-    printf("\n");
+        log_buff =
+            append_to_buffer(log_buff, &size, &offset, "%x", chars_value.blobValue.data[idx]);
+
+    log_debug("%s", log_buff);
+    free(log_buff);
 }
 
 void bleGattcReadCharsCallback(
     bleConnHandle conn_handle, bleGattCharacteristicsValue_t chars_value, status_t status
 ) {
-    printf("CLI callback: bleGattcReadCharsCallback() status: %d\n", status);
-    printf("bleGattcReadCharsCallback - conn_handle %p\n", conn_handle);
+    log_debug("Callback %s(): status %d conn_handle %p", __func__, status, conn_handle);
 
     char buff[256];
     utilsPrintUuid(buff, &chars_value.gattRecord.uuid, 256);
-    printf("bleGattcReadCharsCallback - Characteristic UUID:: %s\n", buff);
+    log_debug("%s() UUID:: %s", __func__, buff);
 
-    printf("bleGattcReadCharsCallback - Characteristic value: ");
+    size_t size = 1024, offset = 0;
+    char* log_buff = malloc(size);
+    if (!log_buff) return;
+
+    log_buff = append_to_buffer(log_buff, &size, &offset, "%s() DATA:: ", __func__);
     for (int idx = 0; idx < chars_value.blobValue.size; idx++)
-        printf("%02x", chars_value.blobValue.data[idx]);
-    printf("\n");
+        log_buff =
+            append_to_buffer(log_buff, &size, &offset, "%x", chars_value.blobValue.data[idx]);
+
+    log_debug("%s", log_buff);
+    free(log_buff);
 }
 
 void bleGattcWriteCharsCallback(
     bleConnHandle conn_handle, bleGattCharacteristicsValue_t gatt_characteristics, status_t status
 ) {
-    printf("CLI callback: bleGattcWriteCharsCallback()\n");
-    printf("conn_handle %p gatt format %u\n", conn_handle, gatt_characteristics.format);
+    log_debug(
+        "Callback %s(): conn_handle %p GATT format %u", __func__, conn_handle,
+        gatt_characteristics.format
+    );
 }
 
 // Wrappers needed for when we need to share callbacks between library and application

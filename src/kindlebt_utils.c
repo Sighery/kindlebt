@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "kindlebt_defines.h"
+#include "kindlebt_log.h"
 
 #define ADDR_WITH_COLON_LEN 17
 #define ADDR_WITHOUT_COLON_LEN 12
@@ -65,7 +66,7 @@ status_t utilsConvertStrToBdAddr(char* str, bdAddr_t* pAddr) {
 
     int length = strlen(str);
     if (length != ADDR_WITH_COLON_LEN && length != ADDR_WITHOUT_COLON_LEN) {
-        printf("Invalid string format. Must be xx:xx:xx:xx:xx:xx or xxxxxxxxxxxx\n");
+        log_error("Invalid string format. Must be xx:xx:xx:xx:xx:xx or xxxxxxxxxxxx");
         return ACE_STATUS_BAD_PARAM;
     }
     // Check if string is in : format
@@ -75,19 +76,19 @@ status_t utilsConvertStrToBdAddr(char* str, bdAddr_t* pAddr) {
     }
 
     if (strlen(str) != ADDR_WITHOUT_COLON_LEN) {
-        printf("Invalid string format. Must be xx:xx:xx:xx:xx:xx or xxxxxxxxxxxx\n");
+        log_error("Invalid string format. Must be xx:xx:xx:xx:xx:xx or xxxxxxxxxxxx");
         return ACE_STATUS_BAD_PARAM;
     }
 
     for (int i = 0; i < ADDR_WITHOUT_COLON_LEN; i++) {
         if (!((str[i] >= '0' && str[i] <= '9') || (str[i] >= 'A' && str[i] <= 'F') ||
               (str[i] >= 'a' && str[i] <= 'f'))) {
-            printf("Contains non-hex character at index %d\n", i);
+            log_error("Contains non-hex character at index %d", i);
             return ACE_STATUS_BAD_PARAM;
         }
     }
 
-    printf("str: %s\n", str);
+    log_debug("Converting str->BT addr, str: %s", str);
 
     length = utilsConvertHexStrToByteArray(str, pAddr->address);
     if (length != MAC_ADDR_LEN) {
@@ -108,24 +109,24 @@ void utilsPrintUuid(char* uuid_str, uuid_t* uuid, int max) {
     );
 }
 
-void utilsDumpServer(bleGattsService_t* server) {
-    if (!server) return;
+char* utilsDumpServer(bleGattsService_t* server, char* log_buff, size_t* size, size_t* offset) {
+    if (!server) return NULL;
 
-    // struct list_head* svc_list;
-    // struct list_head* char_list;
     int inc_svc_count = 0;
     char buff[PRINT_UUID_STR_LEN];
     memset(buff, 0, sizeof(char) * PRINT_UUID_STR_LEN);
     utilsPrintUuid(buff, &server->uuid, PRINT_UUID_STR_LEN);
-    printf("Service 0 uuid %s serviceType %d\n", buff, server->serviceType);
+    log_buff = append_to_buffer(
+        log_buff, size, offset, "Service 0 uuid %s serviceType %d\n", buff, server->serviceType
+    );
 
     struct aceBT_gattIncSvcRec_t* svc_rec;
     STAILQ_FOREACH(svc_rec, &server->incSvcList, link) {
         memset(buff, 0, sizeof(char) * PRINT_UUID_STR_LEN);
         utilsPrintUuid(buff, &svc_rec->value.uuid, PRINT_UUID_STR_LEN);
-        printf(
-            "Included Services %d service Type %d uuid %s\n", inc_svc_count++,
-            svc_rec->value.serviceType, buff
+        log_buff = append_to_buffer(
+            log_buff, size, offset, "Included Services %d service Type %d uuid %s\n",
+            inc_svc_count++, svc_rec->value.serviceType, buff
         );
     }
     uint8_t char_count = 0;
@@ -134,16 +135,21 @@ void utilsDumpServer(bleGattsService_t* server) {
         memset(buff, 0, sizeof(char) * PRINT_UUID_STR_LEN);
         utilsPrintUuid(buff, &char_rec->value.gattRecord.uuid, PRINT_UUID_STR_LEN);
         if (char_rec->value.gattDescriptor.is_notify && char_rec->value.gattDescriptor.is_set) {
-            printf("\tGatt Characteristics with Notifications %d uuid %s\n", char_count++, buff);
+            log_buff = append_to_buffer(
+                log_buff, size, offset, "\tGatt Characteristics with Notifications %d uuid %s\n",
+                char_count++, buff
+            );
         } else {
-            printf("\tGatt Characteristics %d uuid %s\n", char_count++, buff);
+            log_buff = append_to_buffer(
+                log_buff, size, offset, "\tGatt Characteristics %d uuid %s\n", char_count++, buff
+            );
         }
 
         if (char_rec->value.gattDescriptor.is_set) {
             utilsPrintUuid(
                 buff, &char_rec->value.gattDescriptor.gattRecord.uuid, PRINT_UUID_STR_LEN
             );
-            printf("\t\tDescriptor UUID %s\n", buff);
+            log_buff = append_to_buffer(log_buff, size, offset, "\t\tDescriptor UUID %s\n", buff);
 
         } else if (char_rec->value.multiDescCount) {
             uint8_t desc_num = 1;
@@ -151,17 +157,21 @@ void utilsDumpServer(bleGattsService_t* server) {
             /* Traverse descriptor linked list */
             STAILQ_FOREACH(desc_rec, &char_rec->value.descList, link) {
                 utilsPrintUuid(buff, &desc_rec->value.gattRecord.uuid, PRINT_UUID_STR_LEN);
-                printf("\t\tDescriptor %d UUID %s\n", desc_num++, buff);
+                log_buff = append_to_buffer(
+                    log_buff, size, offset, "\t\tDescriptor %d UUID %s\n", desc_num++, buff
+                );
             }
         }
     }
+
+    return log_buff;
 }
 
 struct aceBT_gattCharRec_t* utilsFindCharRec(uuid_t uuid, uint8_t uuid_len) {
     struct aceBT_gattCharRec_t* char_rec = NULL;
 
     if (!pGgatt_service) {
-        printf("GATT DB has not been populated yet!\n");
+        log_error("GATT DB has not been populated yet!");
         return (NULL);
     }
 
@@ -177,7 +187,7 @@ struct aceBT_gattCharRec_t* utilsFindCharRec(uuid_t uuid, uint8_t uuid_len) {
             }
         }
     }
-    printf("GATT Characteristic UUID could not be found!\n");
+    log_error("GATT Characteristic UUID could not be found!");
     return (NULL);
 }
 
@@ -188,17 +198,8 @@ void setGattBlobFromBytes(
 
     free(chars_value->blobValue.data);
 
-    printf("createGattBlobFromBytes received length: %u\n", size);
-    printf("input bytes: ");
-    for (int i = 0; i < size; ++i) {
-        printf("0x%02X ", data[i]);
-    }
-    printf("\n");
-
     uint8_t* blob = malloc(size);
     if (blob == NULL) return;
-
-    printf("Did malloc\n");
 
     memcpy(blob, data, size);
 
@@ -228,7 +229,7 @@ status_t waitForCondition(pthread_mutex_t* lock, pthread_cond_t* cond, bool* fla
         int res = pthread_cond_timedwait(cond, lock, &ts);
         if (res == ETIMEDOUT) {
             pthread_mutex_unlock(lock);
-            printf("Timeout occurred\n");
+            log_error("Timed out waiting for condition");
             return ACE_STATUS_TIMEOUT;
         }
     }

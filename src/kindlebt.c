@@ -6,6 +6,8 @@
 #include "ace/bluetooth_common_api.h"
 #include "ace/bluetooth_session_api.h"
 
+#include "log.h"
+
 #include "kindlebt_defines.h"
 
 #include "kindlebt_callbacks.c"
@@ -47,7 +49,7 @@ status_t closeSession(sessionHandle session_handle) { return aceBT_closeSession(
 
 status_t bleRegister(sessionHandle session_handle) {
     if (callback_vars.ble_registered) {
-        printf("Already registered BLE\n");
+        log_warn("BLE is already registered\n");
         return ACE_STATUS_OK;
     }
 
@@ -140,14 +142,5 @@ status_t bleWriteCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
 ) {
-    // uint8_t data[] = {0x4F, 0x4E}; // ON
-    // uint8_t data[] = {0x4F, 0x46, 0x46}; // OFF
-
-    // chars_value->blobValue.data = malloc(sizeof(data));
-    // if (chars_value->blobValue.data != NULL) {
-    //     memcpy(chars_value->blobValue.data, data, sizeof(data));
-    //     chars_value->blobValue.size = sizeof(data);
-    //     chars_value->blobValue.offset = 0;
-    // }
     return aceBT_bleWriteCharacteristics(session_handle, conn_handle, chars_value, request_type);
 }
