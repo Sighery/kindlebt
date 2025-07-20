@@ -9,6 +9,14 @@ project(
 logc = subproject('logc')
 logc_dep = logc.get_variable('logc_dep')
 
+# Headers dependency
+ace_bt_headers = subproject('ace_bt_headers')
+ace_bt_headers_inc = ace_bt_headers.get_variable('ace_bt_inc')
+ace_bt_headers_dep = declare_dependency(include_directories: ace_bt_headers_inc)
+
+# Actual .so from the Kindle
+ace_bt_pc_dep = dependency('ace_bt', method: 'pkg-config')
+
 library_sources = files(
   './src/kindlebt.c',
   './src/kindlebt_log.c',
@@ -21,7 +29,9 @@ include_dirs = include_directories(
   './src/include/',
 )
 
-acebt_dep = dependency('ace_bt')
+acebt_dep = declare_dependency(
+  dependencies: [ace_bt_pc_dep, ace_bt_headers_dep],
+)
 
 kindlebt = shared_library(
   'kindlebt',
@@ -53,6 +63,7 @@ kindlebt_test = executable(
   binary_sources,
   include_directories: include_dirs,
   dependencies: [
+    acebt_dep,
     logc_dep,
   ],
   link_with: [

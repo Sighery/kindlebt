@@ -1,0 +1,7 @@
+[wrap-file]
+directory = ace_bt_headers
+lead_directory_missing = yes
+source_url = https://dl.espressif.com/dl/acs/acs_rtos_reference_ffs_1.15.0.tar.gz
+source_filename = acs.tar.gz
+source_hash = e70a82ab242ce9d1412949bb035cd972b785b2627179aa934912fcd751b3b545
+patch_directory = ace_bt_headers
