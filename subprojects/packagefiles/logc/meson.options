@@ -1,0 +1,6 @@
+option(
+  'logc_use_color',
+  type: 'boolean',
+  value: true,
+  description: 'Enable color in log.c logs',
+)

@@ -9,4 +9,5 @@ option(
   type: 'boolean',
   value: true,
   description: 'Enable color in log.c logs',
+  yield: true,
 )
