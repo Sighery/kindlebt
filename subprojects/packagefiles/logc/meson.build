@@ -1,4 +1,4 @@
-project('logc', 'c')
+project('logc', 'c', meson_version: '>=1.1')
 
 if get_option('logc_use_color')
     add_project_arguments('-DLOG_USE_COLOR', language: 'c')
