@@ -64,8 +64,8 @@ to set up Meson in this project:
 # Make build dir
 mkdir .build
 
-# Set up Meson. Pass your proper path in -Dkindle_root_dir and --cross-file
-meson setup --wipe -Dkindle_root_dir=~/x-tools/arm-kindlehf-linux-gnueabihf/arm-kindlehf-linux-gnueabihf/sysroot/ --cross-file ~/x-tools/arm-kindlehf-linux-gnueabihf/meson-crosscompile.txt .build/
+# Set up Meson. Pass your proper path in --cross-file
+meson setup --wipe --cross-file ~/x-tools/arm-kindlehf-linux-gnueabihf/meson-crosscompile.txt .build/
 
 # Compile with Meson
 meson compile -C .build/

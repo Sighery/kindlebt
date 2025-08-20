@@ -1,10 +1,4 @@
 option(
-  'kindle_root_dir',
-  type : 'string',
-  value: '',
-  description: 'The path to the Kindle\'s mounted rootfs (for linking libraries)',
-)
-option(
   'logc_use_color',
   type: 'boolean',
   value: true,

@@ -43,14 +43,15 @@ kindlebt = shared_library(
   ],
 )
 
-kindle_root = get_option('kindle_root_dir')
+# Defined in cross file properties
+sysroot = meson.get_external_property('sys_root')
 
 # ACE libraries don't have soname so meson will create hardlinks
 cleanup_ace_bt = custom_target(
   'clean up libace_bt hard link',
   depends: kindlebt,
   input: [
-    join_paths(kindle_root, 'usr/lib', 'libace_bt.so'),
+    join_paths(sysroot, 'usr/lib', 'libace_bt.so'),
     kindlebt,
   ],
   output: 'fake1',
