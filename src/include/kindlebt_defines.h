@@ -4,11 +4,11 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "ace/bluetooth_ble_api.h"
-#include "ace/bluetooth_ble_defines.h"
-#include "ace/bluetooth_ble_gatt_client_api.h"
-#include "ace/bluetooth_defines.h"
-#include "ace/bluetooth_session_api.h"
+#include <ace/bluetooth_ble_api.h>
+#include <ace/bluetooth_ble_defines.h>
+#include <ace/bluetooth_ble_gatt_client_api.h>
+#include <ace/bluetooth_defines.h>
+#include <ace/bluetooth_session_api.h>
 
 #ifdef __cplusplus
 extern "C" {

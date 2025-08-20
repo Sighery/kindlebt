@@ -1,6 +1,8 @@
 #ifndef KINDLE_BT_LOG_H
 #define KINDLE_BT_LOG_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

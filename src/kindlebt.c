@@ -1,13 +1,16 @@
+#include "kindlebt.h"
+
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "ace/bluetooth_ble_api.h"
-#include "ace/bluetooth_ble_gatt_client_api.h"
-#include "ace/bluetooth_common_api.h"
-#include "ace/bluetooth_session_api.h"
+#include <ace/bluetooth_ble_api.h>
+#include <ace/bluetooth_ble_gatt_client_api.h>
+#include <ace/bluetooth_common_api.h>
+#include <ace/bluetooth_session_api.h>
 
 #include "log.h"
 
+#include "compat_ace.h"
 #include "kindlebt_defines.h"
 
 #include "kindlebt_callbacks.c"
@@ -78,6 +81,17 @@ status_t bleRegisterGattClient(sessionHandle session_handle, bleGattClientCallba
     if (callbacks != NULL) {
         application_gatt_client_callbacks = *callbacks;
     }
+
+    // Yes, I know
+    log_error("Trying to detect ABI version");
+    acebt_abi abi_version = acebt_abi_version();
+    log_error("ABI version is %d", abi_version);
+
+    log_error("Calling the pre 5.17.0 interface");
+    status_t status = pre5170_bleRegisterGattClient(
+        session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
+    );
+    log_error("Result %d", status);
 
     return aceBt_bleRegisterGattClient(
         session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS

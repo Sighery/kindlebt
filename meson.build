@@ -20,6 +20,7 @@ ace_bt_pc_dep = dependency('ace_bt', method: 'pkg-config')
 library_sources = files(
   './src/kindlebt.c',
   './src/kindlebt_log.c',
+  './src/compat_ace.c',
 )
 binary_sources = files(
   './src/main.c',
@@ -33,6 +34,9 @@ acebt_dep = declare_dependency(
   dependencies: [ace_bt_pc_dep, ace_bt_headers_dep],
 )
 
+# Needed for the acebt ABI introspection
+dl_dep = dependency('dl')
+
 kindlebt = shared_library(
   'kindlebt',
   library_sources,
@@ -40,6 +44,7 @@ kindlebt = shared_library(
   dependencies: [
     acebt_dep,
     logc_dep,
+    dl_dep,
   ],
 )
 

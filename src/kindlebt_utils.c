@@ -1,3 +1,5 @@
+#include "kindlebt_utils.h"
+
 #include <errno.h>
 #include <pthread.h>
 #include <stdint.h>
