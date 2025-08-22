@@ -82,20 +82,18 @@ status_t bleRegisterGattClient(sessionHandle session_handle, bleGattClientCallba
         application_gatt_client_callbacks = *callbacks;
     }
 
-    // Yes, I know
-    log_error("Trying to detect ABI version");
     acebt_abi abi_version = acebt_abi_version();
-    log_error("ABI version is %d", abi_version);
+    log_info("ABI version is %d", abi_version);
 
-    log_error("Calling the pre 5.17.0 interface");
-    status_t status = pre5170_bleRegisterGattClient(
-        session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
-    );
-    log_error("Result %d", status);
-
-    return aceBt_bleRegisterGattClient(
-        session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
-    );
+    if (abi_version == PRE_5170) {
+        return pre5170_bleRegisterGattClient(
+            session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
+        );
+    } else if (abi_version == SINCE_5170) {
+        return aceBt_bleRegisterGattClient(
+            session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
+        );
+    }
 }
 
 status_t bleDeregisterGattClient(sessionHandle session_handle) {

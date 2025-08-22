@@ -53,7 +53,7 @@ sysroot = meson.get_external_property('sys_root')
 
 # ACE libraries don't have soname so meson will create hardlinks
 cleanup_ace_bt = custom_target(
-  'clean up libace_bt hard link',
+  'libkindlebt: clean up libace_bt hard link',
   depends: kindlebt,
   input: [
     join_paths(sysroot, 'usr/lib', 'libace_bt.so'),
@@ -77,4 +77,16 @@ kindlebt_test = executable(
   ],
   c_args: '-static-libgcc',
   link_args: ['-static-libgcc'],
+)
+
+cleanup_kindlebt_test = custom_target(
+  'kindlebt_test: clean up libace_bt hard link',
+  depends: kindlebt_test,
+  input: [
+    join_paths(sysroot, 'usr/lib', 'libace_bt.so'),
+    kindlebt_test,
+  ],
+  output: 'fake2',
+  command: ['patchelf', '--replace-needed', '@INPUT0@', 'libace_bt.so', '@INPUT1@'],
+  build_by_default: true,
 )

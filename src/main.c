@@ -20,6 +20,12 @@ int main() {
     status_t session_status = openSession(ACEBT_SESSION_TYPE_DUAL_MODE, &bt_session);
     printf("Opened session status: %d\n", session_status);
 
+    status_t gattc_status = bleRegisterGattClient(bt_session, NULL);
+    printf("Registered GATT Client status: %d\n", gattc_status);
+
+    gattc_status = bleDeregisterGattClient(bt_session);
+    printf("Deregistered GATT Client status: %d\n", gattc_status);
+
     session_status = closeSession(bt_session);
     printf("Closed session status: %d\n", session_status);
 
