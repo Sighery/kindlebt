@@ -6,6 +6,7 @@
 
 #include "log.h"
 
+// TODO: Might want to turn it into a bitmask instead
 acebt_abi acebt_abi_version(void) {
     static acebt_abi cached_abi = PRE_5170;
     static bool initialized = false;
@@ -88,8 +89,8 @@ void dump_mask_bits(uint16_t mask) {
 void dump_aipc_handle(aipcHandles_t aipc_handle) {
     log_debug(
         "aipc_handle {\n  callback_server_id: %u (0x%04x),\n  server_id: %u (0x%04x)\n}",
-        aipc_handle.callback_server_id, aipc_handle.callback_server_id,
-        aipc_handle.server_id, aipc_handle.server_id
+        aipc_handle.callback_server_id, aipc_handle.callback_server_id, aipc_handle.server_id,
+        aipc_handle.server_id
     );
 }
 
@@ -205,6 +206,31 @@ status_t pre5170_bleRegisterGattClient(
         registerBTEvtHandler(
             session_handle, NULL, ACE_BT_CALLBACK_PM_CONN_LIST, ACE_BT_CALLBACK_PM_MAX
         );
+    }
+
+    return status;
+}
+
+status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle) {
+    status_t status;
+    aipcHandles_t aipc_handle;
+    request_unreg_t unregister;
+    unregister = (request_unreg_t){.session_handle = (uint32_t)session_handle,
+                                   .size = sizeof(request_unreg_t)};
+
+    status = getSessionInfo(session_handle, &aipc_handle);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Couldn't get session info. Result %d", __func__, status);
+        return ACE_STATUS_BAD_PARAM;
+    }
+
+    dump_aipc_handle(aipc_handle);
+
+    status = aipc_invoke_sync_call(
+        ACE_BT_BLE_UNREGISTER_GATT_CLIENT_API, (void*)&unregister, unregister.size
+    );
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Failed to send AIPC call %d", __func__, status);
     }
 
     return status;

@@ -23,6 +23,8 @@ int main() {
     status_t gattc_status = bleRegisterGattClient(bt_session, NULL);
     printf("Registered GATT Client status: %d\n", gattc_status);
 
+    sleep(3);
+
     gattc_status = bleDeregisterGattClient(bt_session);
     printf("Deregistered GATT Client status: %d\n", gattc_status);
 

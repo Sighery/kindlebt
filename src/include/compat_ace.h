@@ -16,6 +16,7 @@ acebt_abi acebt_abi_version(void);
 status_t pre5170_bleRegisterGattClient(
     sessionHandle session_handle, bleGattClientCallbacks_t* callbacks, bleAppId_t app_id
 );
+status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle);
 
 // ACE things
 typedef struct {
@@ -23,6 +24,13 @@ typedef struct {
     uint16_t server_id;
 } aceBT_aipcHandles_t;
 typedef aceBT_aipcHandles_t aipcHandles_t;
+
+typedef struct {
+    uint32_t size;
+    uint32_t session_handle;
+    status_t out_status;
+} __attribute__((packed)) acebt_request_unreg_t;
+typedef acebt_request_unreg_t request_unreg_t;
 
 status_t getSessionInfo(sessionHandle sessionHandle, aipcHandles_t* handles);
 
