@@ -17,19 +17,27 @@ int main() {
     bool isBLE = isBLESupported();
     printf("Is BLE enabled: %d\n", isBLE);
 
-    status_t session_status = openSession(ACEBT_SESSION_TYPE_DUAL_MODE, &bt_session);
-    printf("Opened session status: %d\n", session_status);
+    status_t status;
 
-    status_t gattc_status = bleRegisterGattClient(bt_session, NULL);
-    printf("Registered GATT Client status: %d\n", gattc_status);
+    status = openSession(ACEBT_SESSION_TYPE_DUAL_MODE, &bt_session);
+    printf("Opened session status: %d\n", status);
+
+    status = bleRegister(bt_session);
+    printf("Registered BLE: %d\n", status);
+
+    status = bleRegisterGattClient(bt_session, NULL);
+    printf("Registered GATT Client status: %d\n", status);
 
     sleep(3);
 
-    gattc_status = bleDeregisterGattClient(bt_session);
-    printf("Deregistered GATT Client status: %d\n", gattc_status);
+    status = bleDeregisterGattClient(bt_session);
+    printf("Deregistered GATT Client status: %d\n", status);
 
-    session_status = closeSession(bt_session);
-    printf("Closed session status: %d\n", session_status);
+    status = bleDeregister(bt_session);
+    printf("Deregistered BLE status: %d\n", status);
+
+    status = closeSession(bt_session);
+    printf("Closed session status: %d\n", status);
 
     return 0;
 }

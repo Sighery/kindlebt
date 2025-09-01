@@ -1,10 +1,14 @@
 project(
-  'kindle-bt-api',
+  'kindlebt',
   'c',
   version: 'v1.0.0',
-  default_options: [],
+  default_options: [
+    'buildtype=debug',
+  ],
   meson_version: '>=1.1'
 )
+
+add_project_arguments('-fno-omit-frame-pointer', language: 'c')
 
 logc = subproject('logc')
 logc_dep = logc.get_variable('logc_dep')

@@ -45,7 +45,7 @@ void dump_hex(const void* ptr, size_t size) {
         if ((i + 1) % 16 == 0) *p++ = '\n';
     }
     *p = '\0';
-    log_debug("Dumping hex: %s", buf);
+    log_debug("Dumping hex:\n%s", buf);
     free(buf);
 }
 
@@ -95,15 +95,15 @@ void dump_aipc_handle(aipcHandles_t aipc_handle) {
 }
 
 void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
+    log_debug("Called into pre 5.17.0 %s", __func__);
+
     if (task == NULL) {
         log_info("[%s()]: Server handler callback: data is null", __func__);
         return;
     }
 
-    log_debug("Called into pre 5.17.0 %s", __func__);
-
     printf("Dumping aceAipc_parameter_t memory:\n");
-    dump_hex(task, sizeof(aceAipc_parameter_t));
+    dump_hex(task, 128);
 
     /* In AIPC callback this runs in server side callback context. Hence use the
        callback id to retrive the session info*/
@@ -112,12 +112,45 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
         getBTClientData(session_handle, CALLBACK_INDEX_BLE_GATT_CLIENT);
     if (session_handle == NULL || p_client_callbacks == NULL) {
         log_error(
-            "Error invalid handle, session %p callback %p", session_handle, p_client_callbacks
+            "[%s()]: Error invalid handle, session %p callback %p", __func__, session_handle,
+            p_client_callbacks
         );
         return;
     }
 
-    // TODO: All the callback cases
+    // TODO: Actually implement these callbacks
+    switch ((ipc_evt_enum_t)task->function_id) {
+    case ACE_BT_CALLBACK_GATTC_SERVICE_REGISTERED: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_REGISTERED");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP");
+    } break;
+    case ACE_BT_CALLBACK_GATTC_GET_DB_RSP: {
+        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_GET_DB_RSP");
+    } break;
+    default:
+        log_warn("[%s()]: Unknown GATT Client callback type %d", __func__, task->function_id);
+        break;
+    }
 
     return;
 }
@@ -178,8 +211,11 @@ status_t pre5170_bleRegisterGattClient(
     mask = create_client_callback_mask(callbacks);
     dump_mask_bits(mask);
 
-    aceBt_serializeGattcRegisterData(&manager_callbacks, (uint32_t)session_handle, mask, app_id);
-    log_debug("[%s()]: Register GATTS Client session handle %p", __func__, session_handle);
+    // In theory this should match session_handle exactly
+    uint32_t temp_aipc = (aipc_handle.server_id << 16) + aipc_handle.callback_server_id;
+    log_debug("[%s()]: temp_aipc %u (0x%04x)", __func__, temp_aipc, temp_aipc);
+    aceBt_serializeGattcRegisterData(&manager_callbacks, temp_aipc, mask, app_id);
+    log_debug("[%s()]: Register GATT Client session handle %p", __func__, session_handle);
 
     dump_registerCbackGattcData(&manager_callbacks);
 
@@ -188,8 +224,8 @@ status_t pre5170_bleRegisterGattClient(
     if (status != ACEBT_STATUS_SUCCESS) return status;
 
     status = registerBTEvtHandler(
-        session_handle, &pre5170_gattc_cb_handler, ACE_BT_CALLBACK_PM_CONN_LIST,
-        ACE_BT_CALLBACK_PM_MAX
+        session_handle, &pre5170_gattc_cb_handler, ACE_BT_CALLBACK_GATTC_INIT,
+        ACE_BT_CALLBACK_GATTC_MAX
     );
     log_debug("[%s()]: registerBTEvtHandler step. Result: %d", __func__, status);
     if (status != ACEBT_STATUS_SUCCESS) return status;
@@ -204,7 +240,7 @@ status_t pre5170_bleRegisterGattClient(
         );
         registerBTClientData(session_handle, CALLBACK_INDEX_BLE_GATT_CLIENT, NULL);
         registerBTEvtHandler(
-            session_handle, NULL, ACE_BT_CALLBACK_PM_CONN_LIST, ACE_BT_CALLBACK_PM_MAX
+            session_handle, NULL, ACE_BT_CALLBACK_GATTC_INIT, ACE_BT_CALLBACK_GATTC_MAX
         );
     }
 

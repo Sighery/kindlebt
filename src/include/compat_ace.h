@@ -378,12 +378,31 @@ typedef enum {
     ACE_BT_CALLBACK_AVRCP_CT_NOTIF = 116,
     ACE_BT_CALLBACK_AVRCP_CT_MAX = 120,
 } acebt_ipc_evt_enum_t;
+typedef acebt_ipc_evt_enum_t ipc_evt_enum_t;
 
-// Dummy placeholder struct for now
+// Reversed struct. Here be dragons
 typedef struct {
-    uint16_t callback_id;
-    uint16_t function_id;
-    void* buffer;
+    uint16_t reserved0;            // 0x00: always 0x0000?
+
+    uint16_t total_size;           // 0x02: 30 00  → 0x30 (48)
+    uint32_t msg_type;             // 0x04: 02 00 00 00  → 0x02 (2)
+
+    uint32_t function_id;          // 0x08: 3e 00 00 00  -> 0x3E (62)
+
+    void    *cb1;                  // 0x0C: 70 44 50 b5
+    void    *cb2;                  // 0x10: 74 44 50 b5
+    void    *buffer;               // 0x14: 48 45 50 b5
+
+    uint32_t reserved1;            // 0x18: 00 00 00 00
+    uint32_t reserved2;            // 0x1C: 00 00 00 00
+    uint32_t reserved3;            // 0x20: 00 00 00 00
+    uint32_t flags;                // 0x24: 01 00 00 00
+
+    uint32_t reserved4;            // 0x28: 00 00 00 00
+
+    /* Matches aceBT_aipcHandles_t dump at 0x2C–0x2F */
+    uint16_t callback_id;          // 0x2C: 4c 19  → 0x194C (6476)
+    uint16_t server_id;            // 0x2E: f0 b6  → 0xB6F0 (46832)
 } aceAipc_parameter_t;
 
 // /** Returns ACE BT Session associated with a callback ID
