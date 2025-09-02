@@ -283,22 +283,21 @@ status_t pre5170_bleRegisterGattClient(
 
 status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle) {
     status_t status;
-    aipcHandles_t aipc_handle;
-    request_unreg_t unregister;
-    unregister = (request_unreg_t){.session_handle = (uint32_t)session_handle,
-                                   .size = sizeof(request_unreg_t)};
+    gatt_request_unreg_t unregister;
 
-    status = getSessionInfo(session_handle, &aipc_handle);
+    status = getSessionInfo(session_handle, &unregister.h1);
     if (status != ACE_STATUS_OK) {
         log_error("[%s()]: Couldn't get session info. Result %d", __func__, status);
         return ACE_STATUS_BAD_PARAM;
     }
 
-    dump_aipc_handle(aipc_handle);
+    dump_aipc_handle(unregister.h1);
 
-    status = aipc_invoke_sync_call(
-        ACE_BT_BLE_UNREGISTER_GATT_CLIENT_API, (void*)&unregister, unregister.size
-    );
+    unregister.h2 = unregister.h1;
+    unregister.size = sizeof(unregister);
+
+    status =
+        aipc_invoke_sync_call(ACE_BT_BLE_UNREGISTER_GATT_CLIENT_API, &unregister, unregister.size);
     if (status != ACE_STATUS_OK) {
         log_error("[%s()]: Failed to send AIPC call %d", __func__, status);
     }

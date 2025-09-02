@@ -20,6 +20,14 @@ typedef struct {
 } __attribute__((packed)) acebt_request_unreg_t;
 typedef acebt_request_unreg_t request_unreg_t;
 
+// Reversed. Don't ask me why the repeated aipcHandles_t
+// Used for GATT Client/Server deregister requests
+typedef struct {
+    uint32_t size;
+    aipcHandles_t h1;
+    aipcHandles_t h2;
+} gatt_request_unreg_t;
+
 status_t getSessionInfo(sessionHandle sessionHandle, aipcHandles_t* handles);
 
 typedef struct {
