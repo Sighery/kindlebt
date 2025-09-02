@@ -258,7 +258,7 @@ status_t pre5170_bleRegisterGattClient(
     if (status != ACEBT_STATUS_SUCCESS) return status;
 
     status = registerBTEvtHandler(
-        session_handle, &pre5170_gattc_cb_handler, ACE_BT_CALLBACK_GATTC_INIT,
+        session_handle, pre5170_gattc_cb_handler, ACE_BT_CALLBACK_GATTC_INIT,
         ACE_BT_CALLBACK_GATTC_MAX
     );
     log_debug("[%s()]: registerBTEvtHandler step. Result: %d", __func__, status);
