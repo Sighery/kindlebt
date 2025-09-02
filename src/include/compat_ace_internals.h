@@ -394,13 +394,18 @@ typedef struct {
     uint16_t server_id;   // 0x2E: f0 b6  → 0xB6F0 (46832)
 } aceAipc_parameter_t;
 
+/** NOTE: These two functions are used in the BT event handlers.
+ * getSessionForCallback was used <5.17
+ * Since >=5.17 they switched to getSessionForTask
+ * We cannot define them or the linker will fail to resolve
+ */
 // /** Returns ACE BT Session associated with a callback ID
 //  *
 //  * @param callback_client_id Callback ID
-//  * @return session handle if  valid session found else error code
+//  * @return session handle if valid session found else error code
 //  */
 // sessionHandle getSessionForCallback(uint16_t callback_client_id);
-sessionHandle getSessionForTask(aceAipc_parameter_t* task)
+// sessionHandle getSessionForTask(aceAipc_parameter_t* task);
 
 typedef void (*bt_event_handler)(aceAipc_parameter_t* task);
 

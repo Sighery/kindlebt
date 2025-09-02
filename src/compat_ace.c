@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include "compat_ace.h"
 
 #include <dlfcn.h>
@@ -26,6 +28,38 @@ acebt_abi acebt_abi_version(void) {
     }
 
     return cached_abi;
+}
+
+/* Internal typedefs matching the two getSessionFor* functions
+ * getSessionForCallback < 5.17
+ * getSessionForTask >= 5.17
+ * Our shim is getSessionFromHandler
+ */
+typedef sessionHandle (*getSessionForCallback_fn_t)(uint16_t);
+typedef sessionHandle (*getSessionForTask_fn_t)(aceAipc_parameter_t*);
+
+sessionHandle getSessionFromHandler(aceAipc_parameter_t* task) {
+    static getSessionForCallback_fn_t old_api = NULL;
+    static getSessionForTask_fn_t new_api = NULL;
+    static bool initialized = false;
+
+    if (!initialized) {
+        new_api = (getSessionForTask_fn_t)dlsym(RTLD_DEFAULT, "getSessionForTask");
+        if (!new_api) {
+            old_api = (getSessionForCallback_fn_t)dlsym(RTLD_DEFAULT, "getSessionForCallback");
+        }
+        initialized = true;
+    }
+
+    if (new_api) {
+        return new_api(task);
+    } else if (old_api) {
+        return old_api(task->callback_id);
+    } else {
+        // Nothing matched. We shouldn't reach this
+        log_error("[%s()]: couldn't match any of the expected getSessionFor* symbols", __func__);
+        return (sessionHandle)-1;
+    }
 }
 
 void dump_hex(const void* ptr, size_t size) {
@@ -107,7 +141,7 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
 
     /* In AIPC callback this runs in server side callback context. Hence use the
        callback id to retrive the session info*/
-    sessionHandle session_handle = getSessionForTask(task);
+    sessionHandle session_handle = getSessionFromHandler(task);
     bleGattClientCallbacks_t* p_client_callbacks =
         getBTClientData(session_handle, CALLBACK_INDEX_BLE_GATT_CLIENT);
     if (session_handle == NULL || p_client_callbacks == NULL) {
