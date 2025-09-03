@@ -21,6 +21,8 @@ status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle);
 // Shim for the getSessionForCallback/getSessionForTask runtime resolution
 sessionHandle getSessionFromHandler(aceAipc_parameter_t* task);
 
+status_t pre5170_bleGetService(bleConnHandle conn_handle);
+
 #ifdef __cplusplus
 }
 #endif

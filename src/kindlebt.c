@@ -108,7 +108,17 @@ status_t bleDeregisterGattClient(sessionHandle session_handle) {
 }
 
 status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service) {
-    status_t db_status = aceBT_bleGetService(conn_handle);
+    acebt_abi abi_version = acebt_abi_version();
+    log_info("ABI version is %d", abi_version);
+
+    status_t db_status;
+
+    if (abi_version == SINCE_5170) {
+        db_status = aceBT_bleGetService(conn_handle);
+    } else {
+        db_status = pre5170_bleGetService(conn_handle);
+    }
+
     if (db_status != ACE_STATUS_OK) return db_status;
 
     status_t cond_status =

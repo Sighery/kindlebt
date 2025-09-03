@@ -50,6 +50,8 @@ typedef aceBT_bleGattsService_t bleGattsService_t;
 typedef aceBT_bleGattAttributeFormat bleGattAttributeFormat;
 typedef aceBT_bleGattBlobValue_t bleGattBlobValue_t;
 typedef aceBT_bleGattCharacteristicsValue_t bleGattCharacteristicsValue_t;
+typedef aceBT_bleGattDescriptor_t bleGattDescriptor_t;
+typedef aceBT_bleGattServiceType_t bleGattServiceType_t;
 
 typedef aceBT_commonCallbacks_t commonCallbacks_t;
 typedef aceBT_bleCallbacks_t bleCallbacks_t;

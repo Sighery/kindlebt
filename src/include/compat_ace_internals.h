@@ -377,6 +377,15 @@ typedef enum {
 } acebt_ipc_evt_enum_t;
 typedef acebt_ipc_evt_enum_t ipc_evt_enum_t;
 
+typedef struct {
+    uint32_t size;
+    uint32_t conn_handle;
+    uuid_t uuid;
+} __attribute__((packed)) acebt_gattc_get_db_data_t;
+typedef acebt_gattc_get_db_data_t gattc_get_db_data_t;
+
+void serialize_ble_get_db_req(gattc_get_db_data_t* data, uint32_t conn_handle, uuid_t* uuid);
+
 // Reversed struct. Here be dragons
 typedef struct {
     uint16_t reserved0; // 0x00: always 0x0000?
@@ -442,6 +451,59 @@ status_t aipc_invoke_sync_call(uint16_t func_id, void* payload, uint32_t len);
  * ACEBT_STATUS_INVALID_PARAM
  */
 void* getBTClientData(sessionHandle sessionHandle, uint8_t dataIndex);
+
+/**
+ * Used during BT event handler GATT Client get DB operations
+ */
+typedef struct {
+    bleGattServiceType_t serviceType;
+    uuid_t uuid;
+} __attribute__((packed)) acebt_included_svc_t;
+typedef acebt_included_svc_t included_svc_t;
+
+typedef enum {
+    ACEBT_BLE_GATT_CHARACTERISTICS,
+    ACEBT_BLE_GATT_DESCRIPTOR,
+    ACEBT_BLE_GATT_INC_SVC,
+} aceBT_bleSerealizedGattDataType_t;
+typedef aceBT_bleSerealizedGattDataType_t bleSerealizedGattDataType_t;
+
+typedef struct {
+    bleSerealizedGattDataType_t dataType;
+    union {
+        bleGattCharacteristicsValue_t charValue;
+        bleGattDescriptor_t descValue;
+        included_svc_t svc;
+    };
+} acebt_service_data_t;
+typedef acebt_service_data_t service_data_t;
+
+typedef struct {
+    uint8_t is_unregister;
+    uint16_t size;
+    uint16_t callback_mask;
+    uint32_t session_handle;
+    uint32_t conn_handle;
+    status_t out_status;
+    bleGattServiceType_t serviceType;
+    uuid_t uuid;
+    uint16_t no_svc_data;
+    service_data_t svc_data[];
+} acebt_register_cback_gatts_t;
+typedef acebt_register_cback_gatts_t register_cback_gatts_t;
+
+typedef struct {
+    uint16_t no_svc;
+    uint32_t conn_handle;
+    register_cback_gatts_t svc_list[];
+} acebt_register_cback_gatts_list_t;
+typedef acebt_register_cback_gatts_list_t register_cback_gatts_list_t;
+
+void deserealize_all_gatts_register_data(
+    register_cback_gatts_list_t* data, bleGattsService_t** gattService, uint32_t* no_svc
+);
+
+void cleanup_all_service(bleGattsService_t* service, int no_svc);
 
 #ifdef __cplusplus
 }

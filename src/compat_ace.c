@@ -85,11 +85,11 @@ void dump_hex(const void* ptr, size_t size) {
 
 void dump_registerCbackGattcData(const registerCbackGattcData_t* data) {
     if (data == NULL) {
-        log_warn("Dumping registerCbackGattcData_t: NULL\n");
+        log_warn("Dumping registerCbackGattcData_t: NULL");
         return;
     }
 
-    log_warn(
+    log_debug(
         "Dumping registerCbackGattcData_t {\n"
         "  size: %u\n"
         "  session_handle: %p\n"
@@ -100,6 +100,53 @@ void dump_registerCbackGattcData(const registerCbackGattcData_t* data) {
         "}",
         data->size, data->session_handle, data->callback_mask, data->is_unregister, data->app_id,
         data->out_status
+    );
+}
+
+void dump_gattc_get_db_data_t(const gattc_get_db_data_t* data) {
+    if (data == NULL) {
+        log_warn("Dumping gattc_get_db_data_t: NULL");
+        return;
+    }
+
+    log_debug(
+        "Dumping gattc_get_db_data_t {\n"
+        "  size: %d\n"
+        "  conn_handle: %p\n"
+        "  uuid: %p\n"
+        "}",
+        data->size, data->conn_handle, data->uuid
+    );
+}
+
+void dump_aceAipc_parameter_t(aceAipc_parameter_t* task) {
+    if (task == NULL) {
+        log_warn("Dumping aceAipc_parameter_t: NULL");
+        return;
+    }
+
+    log_debug(
+        "Dumping aceAipc_parameter_t {\n"
+        "  reserved0 %u (%p)\n"
+        "  size %u (%p)\n"
+        "  msg_type %u (%p)\n"
+        "  function_id %u (%p)\n"
+        "  cb1 %p\n"
+        "  cb2 %p\n"
+        "  buffer %p\n"
+        "  reserved1 %u (%p)\n"
+        "  reserved2 %u (%p)\n"
+        "  reserved3 %u (%p)\n"
+        "  flags %u (%p)\n"
+        "  reserved4 %u (%p)\n"
+        "  callback_id %u (%p)\n"
+        "  server_id %u (%p)\n"
+        "}",
+        task->reserved0, task->reserved0, task->size, task->size, task->msg_type, task->msg_type,
+        task->function_id, task->function_id, task->cb1, task->cb2, task->buffer, task->reserved1,
+        task->reserved1, task->reserved2, task->reserved2, task->reserved3, task->reserved3,
+        task->flags, task->flags, task->reserved4, task->reserved4, task->callback_id,
+        task->callback_id, task->server_id, task->server_id
     );
 }
 
@@ -138,6 +185,7 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
 
     printf("Dumping aceAipc_parameter_t memory:\n");
     dump_hex(task, 128);
+    dump_aceAipc_parameter_t(task);
 
     /* In AIPC callback this runs in server side callback context. Hence use the
        callback id to retrive the session info*/
@@ -155,34 +203,49 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     // TODO: Actually implement these callbacks
     switch ((ipc_evt_enum_t)task->function_id) {
     case ACE_BT_CALLBACK_GATTC_SERVICE_REGISTERED: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_REGISTERED");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_REGISTERED");
+        log_debug("Not actually implemented at all in acebt, so ignore this log");
     } break;
     case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED");
     } break;
     case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP");
     } break;
     case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP");
     } break;
     case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP");
     } break;
     case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED");
     } break;
     case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP");
     } break;
     case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP");
     } break;
     case ACE_BT_CALLBACK_GATTC_GET_DB_RSP: {
-        log_warn("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_GET_DB_RSP");
+        log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_GET_DB_RSP");
+        if (p_client_callbacks->on_ble_gattc_get_gatt_db_cb == NULL) {
+            log_error("[%s()]: on_ble_gattc_get_gatt_db_callback not implemented", __func__);
+            break;
+        }
+
+        bleGattsService_t* gatt_service;
+        uint32_t no_svc;
+        register_cback_gatts_list_t* data = (register_cback_gatts_list_t*)task->buffer;
+
+        deserealize_all_gatts_register_data(data, &gatt_service, &no_svc);
+        p_client_callbacks->on_ble_gattc_get_gatt_db_cb(
+            (bleConnHandle)data->conn_handle, gatt_service, no_svc
+        );
+        cleanup_all_service(gatt_service, no_svc);
     } break;
     default:
-        log_warn("[%s()]: Unknown GATT Client callback type %d", __func__, task->function_id);
+        log_error("[%s()]: Unknown GATT Client callback type %d", __func__, task->function_id);
         break;
     }
 
@@ -302,5 +365,22 @@ status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle) {
         log_error("[%s()]: Failed to send AIPC call %d", __func__, status);
     }
 
+    return status;
+}
+
+status_t pre5170_bleGetService(bleConnHandle conn_handle) {
+    log_debug("Called into pre 5.17.0 %s", __func__);
+
+    status_t status;
+    gattc_get_db_data_t data;
+
+    serialize_ble_get_db_req(&data, (uint32_t)conn_handle, NULL);
+
+    dump_gattc_get_db_data_t(&data);
+
+    status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_GET_SERVICE_API, &data, data.size);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
+    }
     return status;
 }
