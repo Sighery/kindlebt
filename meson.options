@@ -1,4 +1,10 @@
 option(
+  'force_old_api',
+  type: 'boolean',
+  value: false,
+  description: 'Force use of pre 5.17 APIs',
+)
+option(
   'logc_use_color',
   type: 'boolean',
   value: true,

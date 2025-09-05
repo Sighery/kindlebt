@@ -13,16 +13,26 @@ typedef enum {
 } acebt_abi;
 
 acebt_abi acebt_abi_version(void);
+
 status_t pre5170_bleRegisterGattClient(
     sessionHandle session_handle, bleGattClientCallbacks_t* callbacks, bleAppId_t app_id
 );
 status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle);
-
-// Shim for the getSessionForCallback/getSessionForTask runtime resolution
-sessionHandle getSessionFromHandler(aceAipc_parameter_t* task);
-
 status_t pre5170_bleGetService(bleConnHandle conn_handle);
 status_t pre5170_bleReadCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value
+);
+
+// Shim functions
+// Shim for the getSessionForCallback/getSessionForTask runtime resolution
+sessionHandle getSessionFromHandler(aceAipc_parameter_t* task);
+status_t shim_bleRegisterGattClient(
+    sessionHandle session_handle, bleGattClientCallbacks_t* callbacks, bleAppId_t app_id
+);
+status_t shim_bleDeregisterGattClient(sessionHandle session_handle);
+status_t shim_bleGetDatabase(bleConnHandle conn_handle);
+status_t shim_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
 );

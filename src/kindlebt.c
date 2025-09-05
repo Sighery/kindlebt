@@ -82,43 +82,17 @@ status_t bleRegisterGattClient(sessionHandle session_handle, bleGattClientCallba
         application_gatt_client_callbacks = *callbacks;
     }
 
-    acebt_abi abi_version = acebt_abi_version();
-    log_info("ABI version is %d", abi_version);
-
-    if (abi_version == SINCE_5170) {
-        return aceBt_bleRegisterGattClient(
-            session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
-        );
-    } else {
-        return pre5170_bleRegisterGattClient(
-            session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
-        );
-    }
+    return shim_bleRegisterGattClient(
+        session_handle, &gatt_client_callbacks, ACE_BT_BLE_APPID_GADGETS
+    );
 }
 
 status_t bleDeregisterGattClient(sessionHandle session_handle) {
-    acebt_abi abi_version = acebt_abi_version();
-    log_info("ABI version is %d", abi_version);
-
-    if (abi_version == SINCE_5170) {
-        return aceBT_bleDeRegisterGattClient(session_handle);
-    } else {
-        return pre5170_bleDeregisterGattClient(session_handle);
-    }
+    return shim_bleDeregisterGattClient(session_handle);
 }
 
 status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service) {
-    acebt_abi abi_version = acebt_abi_version();
-    log_info("ABI version is %d", abi_version);
-
-    status_t db_status;
-
-    if (abi_version == SINCE_5170) {
-        db_status = aceBT_bleGetService(conn_handle);
-    } else {
-        db_status = pre5170_bleGetService(conn_handle);
-    }
-
+    status_t db_status = shim_bleGetDatabase(conn_handle);
     if (db_status != ACE_STATUS_OK) return db_status;
 
     status_t cond_status =
@@ -164,14 +138,7 @@ status_t bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
 ) {
-    acebt_abi abi_version = acebt_abi_version();
-    log_info("ABI version is %d", abi_version);
-
-    if (abi_version == SINCE_5170) {
-        return aceBT_bleReadCharacteristics(session_handle, conn_handle, chars_value);
-    } else {
-        return pre5170_bleReadCharacteristic(session_handle, conn_handle, chars_value);
-    }
+    return shim_bleReadCharacteristic(session_handle, conn_handle, chars_value);
 }
 
 status_t bleWriteCharacteristic(

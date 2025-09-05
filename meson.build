@@ -10,6 +10,10 @@ project(
 
 add_project_arguments('-fno-omit-frame-pointer', language: 'c')
 
+if get_option('force_old_api')
+  add_project_arguments('-DFORCE_OLD_API', language: 'c')
+endif
+
 logc = subproject('logc')
 logc_dep = logc.get_variable('logc_dep')
 
