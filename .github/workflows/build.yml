@@ -1,0 +1,83 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: "3.12"
+  MESON_VERSION: "1.7.2"
+  SDK_LATEST: "https://github.com/Sighery/kindle-sdk/releases/latest"
+  SDK_RELEASE: "https://github.com/Sighery/kindle-sdk/releases/latest/download/"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "${{ env.PYTHON_VERSION }}"
+
+      - name: Install Meson
+        run: python -m pip install meson=="${{ env.MESON_VERSION }}" ninja
+
+      - name: Setup env variables
+        run: |
+          sdk_release=$(curl -Ls -I -o /dev/null -w %{url_effective} $SDK_LATEST)
+          echo "SDK_RELEASE_URL=$sdk_release" >> "$GITHUB_ENV"
+
+      - name: Setup SDKs
+        run: |
+          echo "${SDK_RELEASE}kindlepw5-5.16.2.1.1.tar.gz" >> sdk-urls.txt
+          echo "${SDK_RELEASE}scribe1-5.17.3.tar.gz" >> sdk-urls.txt
+          cat sdk-urls.txt | parallel -j8 wget -nv {}
+
+          mkdir sdk-sf sdk-hf
+
+          tar -xzf kindlepw5-5.16.2.1.1.tar.gz -C sdk-sf
+          tar -xzf scribe1-5.17.3.tar.gz -C sdk-hf
+
+      - name: Configure project
+        run: |
+          mkdir .build_sf .build_hf
+          meson setup --wipe --cross-file ./sdk-sf/x-tools/arm-kindlepw2-linux-gnueabi/meson-crosscompile.txt .build_sf/
+          meson setup --wipe --cross-file ./sdk-hf/x-tools/arm-kindlehf-linux-gnueabihf/meson-crosscompile.txt .build_hf/
+
+      - name: Compile project
+        run: |
+          meson compile -C .build_sf/
+          meson compile -C .build_hf/
+
+      - name: Upload meson-log
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: meson_logs
+          path: .build_*/meson-logs/meson-log.txt
+          if-no-files-found: "warn"
+
+      - name: Package binaries
+        run: |
+          tar -czf kindlebt-sf.tar.gz -C .build_sf libkindlebt.so kindlebt_test
+          tar -czf kindlebt-hf.tar.gz -C .build_hf libkindlebt.so kinblebt_test
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          body: |
+            Built with SDK release ${{ env.SDK_RELEASE_URL }}
+          append_body: true
+          fail_on_unmatched_files: true
+          files: "kindlebt-*.tar.gz"
