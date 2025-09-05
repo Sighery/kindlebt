@@ -22,6 +22,10 @@ status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle);
 sessionHandle getSessionFromHandler(aceAipc_parameter_t* task);
 
 status_t pre5170_bleGetService(bleConnHandle conn_handle);
+status_t pre5170_bleReadCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value
+);
 
 #ifdef __cplusplus
 }

@@ -211,6 +211,28 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     } break;
     case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP");
+        if (p_client_callbacks->on_ble_gattc_read_characteristics_cb == NULL) {
+            log_error("[%s()]: on_ble_gattc_read_characteristics_cb not implemented", __func__);
+            break;
+        }
+
+        gattc_read_chars_data_t* data = (gattc_read_chars_data_t*)task->buffer;
+
+        // TODO: Decompiled code does way more assignments. So there is a chance I'm not filling
+        // the whole struct
+        data->value.blobValue.data = data->data;
+        uint32_t len32 = data->data_len;
+        if (len32 > UINT16_MAX) {
+            log_error("[%s()]: data_len too big: %d", __func__, data->data_len);
+            len32 = UINT16_MAX;
+        }
+        data->value.blobValue.size = (uint16_t)len32;
+        data->value.blobValue.offset = 0;
+        data->value.format = BLE_FORMAT_BLOB;
+
+        p_client_callbacks->on_ble_gattc_read_characteristics_cb(
+            (bleConnHandle)data->conn_handle, data->value, data->status
+        );
     } break;
     case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP");
@@ -379,6 +401,26 @@ status_t pre5170_bleGetService(bleConnHandle conn_handle) {
     dump_gattc_get_db_data_t(&data);
 
     status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_GET_SERVICE_API, &data, data.size);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
+    }
+    return status;
+}
+
+status_t pre5170_bleReadCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value
+) {
+    log_debug("Called into pre 5.17.0 %s", __func__);
+
+    status_t status;
+    acebt_gattc_read_chars_req_data_t data;
+
+    serialize_gattc_read_chars_req(&data, (uint32_t)conn_handle, chars_value);
+
+    log_debug("[%s()]: Serialize request, status: %d", __func__, data.status);
+
+    status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_READ_CHARS_API, &data, data.size);
     if (status != ACE_STATUS_OK) {
         log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
     }

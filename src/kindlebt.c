@@ -164,7 +164,14 @@ status_t bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
 ) {
-    return aceBT_bleReadCharacteristics(session_handle, conn_handle, chars_value);
+    acebt_abi abi_version = acebt_abi_version();
+    log_info("ABI version is %d", abi_version);
+
+    if (abi_version == SINCE_5170) {
+        return aceBT_bleReadCharacteristics(session_handle, conn_handle, chars_value);
+    } else {
+        return pre5170_bleReadCharacteristic(session_handle, conn_handle, chars_value);
+    }
 }
 
 status_t bleWriteCharacteristic(

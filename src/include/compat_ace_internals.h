@@ -505,6 +505,35 @@ void deserealize_all_gatts_register_data(
 
 void cleanup_all_service(bleGattsService_t* service, int no_svc);
 
+/**
+ * Used for the pre 5.17.0 bleReadCharacteristics implementation
+ */
+typedef struct {
+    uint32_t size;
+    uint32_t conn_handle;
+    bleGattCharacteristicsValue_t chars;
+    status_t status;
+} __attribute__((packed)) acebt_gattc_read_chars_req_data_t;
+typedef acebt_gattc_read_chars_req_data_t gattc_read_chars_req_data_t;
+
+void serialize_gattc_read_chars_req(
+    gattc_read_chars_req_data_t* data, uint32_t conn_handle,
+    bleGattCharacteristicsValue_t charsValue
+);
+
+/**
+ * Used during BT event handler GATT Client read characteristic operations
+ */
+typedef struct {
+    uint32_t size;
+    uint32_t conn_handle;
+    bleGattCharacteristicsValue_t value;
+    status_t status;
+    uint32_t data_len;
+    uint8_t data[];
+} __attribute__((packed)) acebt_gattc_read_chars_data_t;
+typedef acebt_gattc_read_chars_data_t gattc_read_chars_data_t;
+
 #ifdef __cplusplus
 }
 #endif
