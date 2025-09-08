@@ -31,6 +31,7 @@ status_t shim_bleRegisterGattClient(
     sessionHandle session_handle, bleGattClientCallbacks_t* callbacks, bleAppId_t app_id
 );
 status_t shim_bleDeregisterGattClient(sessionHandle session_handle);
+status_t shim_bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle);
 status_t shim_bleGetDatabase(bleConnHandle conn_handle);
 status_t shim_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,

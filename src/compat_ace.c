@@ -144,7 +144,7 @@ void dump_aipc_handle(aipcHandles_t aipc_handle) {
 }
 
 void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
-    log_debug("Called into pre 5.17.0 %s", __func__);
+    log_debug("Called into pre 5.17 %s", __func__);
 
     if (task == NULL) {
         log_info("[%s()]: Server handler callback: data is null", __func__);
@@ -176,6 +176,15 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     } break;
     case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_SERVICE_DISCOVERED");
+        if (p_client_callbacks->on_ble_gattc_service_discovered_cb == NULL) {
+            log_error("[%s()]: on_ble_gattc_service_discovered_cb not implemented", __func__);
+            break;
+        }
+
+        dis_req_t* data = (dis_req_t*)task->buffer;
+        p_client_callbacks->on_ble_gattc_service_discovered_cb(
+            (bleConnHandle)data->conn_handle, data->out_status
+        );
     } break;
     case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP");
@@ -358,14 +367,27 @@ status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle) {
     return status;
 }
 
+status_t pre5170_bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle) {
+    log_debug("Called into pre 5.17 %s", __func__);
+
+    status_t status;
+    request_disc_all_svc_t data;
+
+    serialize_gattc_disc_all_svc(&data, (uint32_t)conn_handle);
+    status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_DISC_ALL_SVC_API, &data, data.size);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
+    }
+    return data.out_status;
+}
+
 status_t pre5170_bleGetService(bleConnHandle conn_handle) {
-    log_debug("Called into pre 5.17.0 %s", __func__);
+    log_debug("Called into pre 5.17 %s", __func__);
 
     status_t status;
     gattc_get_db_data_t data;
 
     serialize_ble_get_db_req(&data, (uint32_t)conn_handle, NULL);
-
     dump_gattc_get_db_data_t(&data);
 
     status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_GET_SERVICE_API, &data, data.size);
@@ -379,7 +401,7 @@ status_t pre5170_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
 ) {
-    log_debug("Called into pre 5.17.0 %s", __func__);
+    log_debug("Called into pre 5.17 %s", __func__);
 
     status_t status;
     acebt_gattc_read_chars_req_data_t data;
@@ -475,6 +497,28 @@ status_t shim_bleDeregisterGattClient(sessionHandle session_handle) {
         return new_api(session_handle);
     } else {
         return pre5170_bleDeregisterGattClient(session_handle);
+    }
+}
+
+typedef status_t (*aceBT_bleDiscoverAllServices_fn_t)(sessionHandle, bleConnHandle);
+
+status_t shim_bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle) {
+    static aceBT_bleDiscoverAllServices_fn_t new_api = NULL;
+
+#ifndef FORCE_OLD_API
+    static bool initialized = false;
+
+    if (!initialized) {
+        new_api =
+            (aceBT_bleDiscoverAllServices_fn_t)dlsym(RTLD_DEFAULT, "aceBT_bleDiscoverAllServices");
+        initialized = true;
+    }
+#endif
+
+    if (new_api) {
+        return new_api(session_handle, conn_handle);
+    } else {
+        return pre5170_bleDiscoverAllServices(session_handle, conn_handle);
     }
 }
 

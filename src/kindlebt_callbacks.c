@@ -94,12 +94,28 @@ void bleConnStateChangedCallback(
             setCallbackVariable(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected, true
             );
+            setCallbackVariable(
+                &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, false
+            );
         } else if (state == ACEBT_BLE_STATE_DISCONNECTED) {
             log_info("BLE device %s disconnected", addr);
+            setCallbackVariable(
+                &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected, false
+            );
             setCallbackVariable(
                 &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, true
             );
         }
+    }
+}
+
+void bleGattcServiceDiscoveredCallback(bleConnHandle conn_handle, status_t status) {
+    log_debug("Callback %s(): conn_handle %p status %d", __func__, conn_handle, status);
+
+    if (status == ACE_STATUS_OK) {
+        setCallbackVariable(
+            &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_discovered, true
+        );
     }
 }
 
@@ -187,6 +203,14 @@ void bleGattcWriteCharsCallback(
 }
 
 // Wrappers needed for when we need to share callbacks between library and application
+void bleGattcServiceDiscoveredCallbackWrapper(bleConnHandle conn_handle, status_t status) {
+    bleGattcServiceDiscoveredCallback(conn_handle, status);
+
+    if (application_gatt_client_callbacks.on_ble_gattc_service_discovered_cb != NULL) {
+        application_gatt_client_callbacks.on_ble_gattc_service_discovered_cb(conn_handle, status);
+    }
+}
+
 void bleGattcGetDbCallbackWrapper(
     bleConnHandle conn_handle, bleGattsService_t* gatt_service, uint32_t no_svc
 ) {

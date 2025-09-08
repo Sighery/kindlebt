@@ -60,12 +60,13 @@ int main() {
 
     if (status != ACE_STATUS_OK) return -6;
 
-    sleep(1);
+    status = bleDiscoverAllServices(bt_session, conn_handle);
+    printf("Discovered all services: %d\n", status);
+    if (status != ACE_STATUS_OK) return -7;
 
     status = bleGetDatabase(conn_handle, &gatt_db);
     printf("Requested GATT DB status: %d\n", status);
-
-    if (status != ACE_STATUS_OK) return -7;
+    if (status != ACE_STATUS_OK) return -8;
 
     sleep(2);
 
@@ -79,7 +80,7 @@ int main() {
 
     if (charac == NULL) {
         printf("Couldn't find the characteristic?");
-        return -8;
+        return -9;
     }
 
     status = bleReadCharacteristic(bt_session, conn_handle, charac->value);

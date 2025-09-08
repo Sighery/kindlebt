@@ -30,6 +30,7 @@ static bleCallbacks_t ble_callbacks = {
 
 static bleGattClientCallbacks_t gatt_client_callbacks = {
     .size = sizeof(bleGattClientCallbacks_t),
+    .on_ble_gattc_service_discovered_cb = bleGattcServiceDiscoveredCallbackWrapper,
     .on_ble_gattc_get_gatt_db_cb = bleGattcGetDbCallbackWrapper,
     .notify_characteristics_cb = bleGattcNotifyCharsCallbackWrapper,
     .on_ble_gattc_read_characteristics_cb = bleGattcReadCharsCallbackWrapper,
@@ -89,6 +90,16 @@ status_t bleRegisterGattClient(sessionHandle session_handle, bleGattClientCallba
 
 status_t bleDeregisterGattClient(sessionHandle session_handle) {
     return shim_bleDeregisterGattClient(session_handle);
+}
+
+status_t bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle) {
+    status_t services_status = shim_bleDiscoverAllServices(session_handle, conn_handle);
+    if (services_status != ACE_STATUS_OK) return services_status;
+
+    status_t cond_status =
+        waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_discovered);
+
+    return cond_status;
 }
 
 status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service) {

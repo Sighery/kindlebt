@@ -453,6 +453,29 @@ status_t aipc_invoke_sync_call(uint16_t func_id, void* payload, uint32_t len);
 void* getBTClientData(sessionHandle sessionHandle, uint8_t dataIndex);
 
 /**
+ * Used for the pre 5.17.0 bleDiscoverAllServices implementation
+ */
+typedef struct {
+    uint32_t size;
+    uint32_t session_handle;
+    uint32_t conn_handle;
+    status_t out_status;
+} __attribute__((packed)) acebt_request_disc_all_svc_t;
+typedef acebt_request_disc_all_svc_t request_disc_all_svc_t;
+
+void serialize_gattc_disc_all_svc(request_disc_all_svc_t* data, uint32_t conn_handle);
+
+/**
+ * Used during BT event handler GATT Client discover all services operations
+ */
+typedef struct {
+    uint32_t size;
+    uint32_t conn_handle;
+    status_t out_status;
+} __attribute__((packed)) acebt_dis_req_t;
+typedef acebt_dis_req_t dis_req_t;
+
+/**
  * Used during BT event handler GATT Client get DB operations
  */
 typedef struct {

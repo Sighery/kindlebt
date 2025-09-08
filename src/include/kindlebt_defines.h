@@ -63,6 +63,7 @@ typedef struct {
     bool mtu_set;
     bool gattc_connected;
     bool gattc_disconnected;
+    bool gattc_discovered;
     bool got_gatt_db;
 } bleCallbackVars_t;
 
