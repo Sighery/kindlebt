@@ -37,6 +37,10 @@ status_t shim_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
 );
+status_t shim_bleWriteCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+);
 
 #ifdef __cplusplus
 }

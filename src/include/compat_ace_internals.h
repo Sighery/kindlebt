@@ -557,6 +557,28 @@ typedef struct {
 } __attribute__((packed)) acebt_gattc_read_chars_data_t;
 typedef acebt_gattc_read_chars_data_t gattc_read_chars_data_t;
 
+/**
+ * Used for the pre 5.17.0 bleWriteCharacteristics implementation
+ */
+void serialize_gattc_write_char_req(
+    uint32_t conn_handle, bleGattCharacteristicsValue_t* val, uint8_t** out_data, uint32_t* out_len,
+    responseType_t request_type
+);
+
+/**
+ * Used during BT event handler GATT Client write characteristic operations
+ */
+typedef struct {
+    uint32_t size;
+    uint32_t conn_handle;
+    bleGattCharacteristicsValue_t value;
+    responseType_t write_type;
+    status_t status;
+    uint32_t data_len;
+    uint8_t data[];
+} __attribute__((packed)) acebt_gattc_write_chars_data_t;
+typedef acebt_gattc_write_chars_data_t gattc_write_chars_data_t;
+
 #ifdef __cplusplus
 }
 #endif

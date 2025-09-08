@@ -213,6 +213,27 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     } break;
     case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP");
+        if (p_client_callbacks->on_ble_gattc_write_characteristics_cb == NULL) {
+            log_error("[%s()]: on_ble_gattc_write_characteristics_cb not implemented", __func__);
+            break;
+        }
+
+        gattc_write_chars_data_t* data = (gattc_write_chars_data_t*)task->buffer;
+
+        // TODO: Decompiled code does way more assignments. This might not be feature complete
+        data->value.blobValue.data = data->data;
+        uint32_t len32 = data->data_len;
+        if (len32 > UINT16_MAX) {
+            log_error("[%s()]: data_len too big: %d", __func__, data->data_len);
+            len32 = UINT16_MAX;
+        }
+        data->value.blobValue.size = (uint16_t)len32;
+        data->value.blobValue.offset = 0;
+        data->value.format = BLE_FORMAT_BLOB;
+
+        p_client_callbacks->on_ble_gattc_write_characteristics_cb(
+            (bleConnHandle)data->conn_handle, data->value, data->status
+        );
     } break;
     case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_EXEC_WRITE_RSP");
@@ -404,16 +425,77 @@ status_t pre5170_bleReadCharacteristic(
     log_debug("Called into pre 5.17 %s", __func__);
 
     status_t status;
+    aipcHandles_t handle;
+
+    status = getSessionInfo(session_handle, &handle);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Couldn't get session info. Result: %d", __func__, status);
+        return ACE_STATUS_BAD_PARAM;
+    }
+
     acebt_gattc_read_chars_req_data_t data;
-
     serialize_gattc_read_chars_req(&data, (uint32_t)conn_handle, chars_value);
-
     log_debug("[%s()]: Serialize request, status: %d", __func__, data.status);
 
     status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_READ_CHARS_API, &data, data.size);
     if (status != ACE_STATUS_OK) {
         log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
     }
+    return status;
+}
+
+// Used in the bleWriteCharacteristics call.
+// I don't want to declare it because that would be a whole new linking dependency
+typedef void (*aceAlloc_free_fn_t)(int, int, void*);
+
+status_t pre5170_bleWriteCharacteristics(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+) {
+    log_debug("Called into pre 5.17 %s", __func__);
+
+    static aceAlloc_free_fn_t aceAlloc_free = NULL;
+    static bool free_initialized = false;
+
+    if (!free_initialized) {
+        aceAlloc_free = (aceAlloc_free_fn_t)dlsym(RTLD_DEFAULT, "aceAlloc_free");
+        free_initialized = true;
+    }
+
+    if (aceAlloc_free == NULL) {
+        log_error("[%s()]: Couldn't find aceAlloc_free symbol", __func__);
+        return ACE_STATUS_GENERAL_ERROR;
+    }
+
+    status_t status;
+    aipcHandles_t handle;
+
+    status = getSessionInfo(session_handle, &handle);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Couldn't get session info. Result: %d", __func__, status);
+        return ACE_STATUS_BAD_PARAM;
+    }
+
+    uint8_t* out_data;
+    uint32_t out_len;
+
+    serialize_gattc_write_char_req(
+        (uint32_t)conn_handle, chars_value, &out_data, &out_len, request_type
+    );
+
+    if (out_data == NULL) {
+        log_error("[%s()]: Failed serialize_gattc_write_char_req", __func__);
+        return ACE_STATUS_GENERAL_ERROR;
+    }
+
+    status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_WRITE_CHARS_API, out_data, out_len);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
+        return status;
+    }
+
+    aceAlloc_free(0x21, 0, out_data);
+
     return status;
 }
 
@@ -567,5 +649,34 @@ status_t shim_bleReadCharacteristic(
         return new_api(session_handle, conn_handle, chars_value);
     } else {
         return pre5170_bleReadCharacteristic(session_handle, conn_handle, chars_value);
+    }
+}
+
+typedef status_t (*aceBT_bleWriteCharacteristics_fn_t)(
+    sessionHandle, bleConnHandle, bleGattCharacteristicsValue_t*, responseType_t
+);
+
+status_t shim_bleWriteCharacteristic(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+) {
+    static aceBT_bleWriteCharacteristics_fn_t new_api = NULL;
+
+#ifndef FORCE_OLD_API
+    static bool initialized = false;
+
+    if (!initialized) {
+        new_api = (aceBT_bleWriteCharacteristics_fn_t
+        )dlsym(RTLD_DEFAULT, "aceBT_bleWriteCharacteristics");
+        initialized = true;
+    }
+#endif
+
+    if (new_api) {
+        return new_api(session_handle, conn_handle, chars_value, request_type);
+    } else {
+        return pre5170_bleWriteCharacteristics(
+            session_handle, conn_handle, chars_value, request_type
+        );
     }
 }

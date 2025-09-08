@@ -156,5 +156,5 @@ status_t bleWriteCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
 ) {
-    return aceBT_bleWriteCharacteristics(session_handle, conn_handle, chars_value, request_type);
+    return shim_bleWriteCharacteristic(session_handle, conn_handle, chars_value, request_type);
 }
