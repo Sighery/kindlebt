@@ -29,6 +29,11 @@ library_sources = files(
   './src/kindlebt.c',
   './src/kindlebt_log.c',
   './src/compat_ace.c',
+  './src/compat_ace_implementations.c',
+  './src/compat_ace_shims.c',
+  './src/compat_ace_utils.c',
+  './src/compat_ace_handler.c',
+  './src/compat_acealloc.c',
 )
 binary_sources = files(
   './src/main.c',

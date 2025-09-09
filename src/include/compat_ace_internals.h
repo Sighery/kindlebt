@@ -1,5 +1,5 @@
-#ifndef COMPAT_ACE_INTERNALS
-#define COMPAT_ACE_INTERNALS
+#ifndef COMPAT_ACE_INTERNALS_H
+#define COMPAT_ACE_INTERNALS_H
 
 #include "kindlebt_defines.h"
 
@@ -583,4 +583,4 @@ typedef acebt_gattc_write_chars_data_t gattc_write_chars_data_t;
 }
 #endif
 
-#endif // COMPAT_ACE_INTERNALS
+#endif // COMPAT_ACE_INTERNALS_H
