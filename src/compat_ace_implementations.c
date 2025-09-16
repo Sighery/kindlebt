@@ -1,6 +1,9 @@
 #include "compat_ace_implementations.h"
 
+#include <endian.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "log.h"
 
@@ -214,7 +217,46 @@ status_t pre5170_bleWriteCharacteristics(
         return status;
     }
 
-    shim_aceAlloc_free(0x21, 0, out_data);
+    shadow_aceAlloc_free(out_data);
+
+    return status;
+}
+
+status_t pre5170_bleWriteDescriptor(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+) {
+    log_debug("Called into pre 5.17 %s", __func__);
+
+    status_t status;
+    aipcHandles_t handle;
+
+    status = getSessionInfo(session_handle, &handle);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Couldn't get session info. Result: %d", __func__, status);
+        return ACE_STATUS_BAD_PARAM;
+    }
+
+    uint8_t* out_data;
+    uint32_t out_len;
+
+    serialize_gattc_write_desc_req(
+        (uint32_t)conn_handle, &chars_value->gattDescriptor, &out_data, &out_len, request_type
+    );
+    if (out_data == NULL) {
+        log_error("[%s()]: serialize_gattc_write_desc_req() failed", __func__);
+        return ACE_STATUS_GENERAL_ERROR;
+    }
+
+    status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_WRITE_DESC_API, out_data, out_len);
+    if (status == ACE_STATUS_OK) {
+        status = ((const gattc_write_desc_data_t*)out_data)->status;
+    } else {
+        log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
+        status = ACE_STATUS_BAD_PARAM;
+    }
+
+    shadow_aceAlloc_free(out_data);
 
     return status;
 }

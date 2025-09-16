@@ -37,10 +37,6 @@ status_t bleConnect(
 );
 status_t bleDisconnect(bleConnHandle conn_handle);
 
-status_t bleSetNotification(
-    sessionHandle session_handle, bleConnHandle conn_handle,
-    bleGattCharacteristicsValue_t chars_value, bool enable
-);
 status_t bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
@@ -48,6 +44,14 @@ status_t bleReadCharacteristic(
 status_t bleWriteCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+);
+status_t bleWriteDescriptor(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+);
+status_t bleSetNotification(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value, bool enable
 );
 
 #ifdef __cplusplus

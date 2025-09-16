@@ -8,9 +8,14 @@
 
 // Used in the bleWriteCharacteristics and bleWriteDescriptor calls.
 // I don't want to declare it because that would be a whole new linking dependency
-typedef void (*aceAlloc_free_fn_t)(int, int, void*);
 
-void shim_aceAlloc_free(int module_id, int buf_type, void* p) {
+// Defined in ace/ace_modules.h
+#define ACE_MODULE_BT 33
+// Defined in ace/osal_alloc.h
+#define ACE_ALLOC_BUFFER_GENERIC 0
+
+typedef void (*aceAlloc_free_fn_t)(int, int, void*);
+void shadow_aceAlloc_free(void* p) {
     static aceAlloc_free_fn_t api = NULL;
     static bool initialized = false;
 
@@ -20,9 +25,11 @@ void shim_aceAlloc_free(int module_id, int buf_type, void* p) {
     }
 
     if (api == NULL) {
-        log_error("[%s()]: couldn't match aceAlloc_free symbol. This is not supposed to happen");
+        log_error(
+            "[%s()]: couldn't match aceAlloc_free symbol. This is not supposed to happen", __func__
+        );
         return;
     }
 
-    return api(module_id, buf_type, p);
+    return api(ACE_MODULE_BT, ACE_ALLOC_BUFFER_GENERIC, p);
 }

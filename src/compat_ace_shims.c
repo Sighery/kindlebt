@@ -187,3 +187,29 @@ status_t shim_bleWriteCharacteristic(
         );
     }
 }
+
+typedef status_t (*aceBT_bleWriteDescriptor_fn_t)(
+    sessionHandle, bleConnHandle, bleGattCharacteristicsValue_t*, responseType_t
+);
+
+status_t shim_bleWriteDescriptor(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
+) {
+    static aceBT_bleWriteDescriptor_fn_t new_api = NULL;
+
+#ifndef FORCE_OLD_API
+    static bool initialized = false;
+
+    if (!initialized) {
+        new_api =
+            (aceBT_bleWriteCharacteristics_fn_t)dlsym(RTLD_DEFAULT, "aceBT_bleWriteDescriptor");
+    }
+#endif
+
+    if (new_api) {
+        return new_api(session_handle, conn_handle, chars_value, request_type);
+    } else {
+        return pre5170_bleWriteDescriptor(session_handle, conn_handle, chars_value, request_type);
+    }
+}

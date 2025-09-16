@@ -63,7 +63,10 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
         data->value.blobValue.data = data->data;
         uint32_t len32 = data->data_len;
         if (len32 > UINT16_MAX) {
-            log_error("[%s()]: data_len too big: %d", __func__, data->data_len);
+            log_error(
+                "[%s() ACE_BT_CALLBACK_GATTC_CHARS_READ_RSP]: data_len too big: %d", __func__,
+                data->data_len
+            );
             len32 = UINT16_MAX;
         }
         data->value.blobValue.size = (uint16_t)len32;
@@ -87,7 +90,10 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
         data->value.blobValue.data = data->data;
         uint32_t len32 = data->data_len;
         if (len32 > UINT16_MAX) {
-            log_error("[%s()]: data_len too big: %d", __func__, data->data_len);
+            log_error(
+                "[%s() ACE_BT_CALLBACK_GATTC_CHARS_WRITE_RSP]: data_len too big: %d", __func__,
+                data->data_len
+            );
             len32 = UINT16_MAX;
         }
         data->value.blobValue.size = (uint16_t)len32;
@@ -106,6 +112,34 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     } break;
     case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP");
+        if (p_client_callbacks->on_ble_gattc_write_descriptor_cb == NULL) {
+            log_error("[%s()]: on_ble_gattc_write_descriptor_cb not implemented", __func__);
+            break;
+        }
+
+        gattc_write_desc_data_t* data = (gattc_write_desc_data_t*)task->buffer;
+
+        // TODO: Decompiled code does way more assignments. This might not be feature complete
+        data->desc.blobValue.data = data->data;
+        uint32_t len32 = data->data_len;
+        if (len32 > UINT16_MAX) {
+            log_error(
+                "[%s() ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP]: data_len too big: %d", __func__,
+                data->data_len
+            );
+            len32 = UINT16_MAX;
+        }
+        data->desc.blobValue.size = (uint16_t)len32;
+        data->desc.blobValue.offset = 0;
+
+        // Callback expects a bleGattCharacteristicsValue_t? I think it might be expected that
+        // only gattDescriptor is populated
+        bleGattCharacteristicsValue_t charac;
+        charac.gattDescriptor = data->desc;
+
+        p_client_callbacks->on_ble_gattc_write_descriptor_cb(
+            (bleConnHandle)data->conn_handle, charac, data->status
+        );
     } break;
     case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_READ_RSP");
