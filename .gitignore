@@ -47,3 +47,6 @@
 subprojects/packagecache/
 subprojects/logc/
 subprojects/ace_bt_headers/
+
+# Nix
+.direnv/
