@@ -163,5 +163,5 @@ status_t bleSetNotification(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value, bool enable
 ) {
-    return aceBT_bleSetNotification(session_handle, conn_handle, chars_value, enable);
+    return shim_bleSetNotification(session_handle, conn_handle, chars_value, enable);
 }

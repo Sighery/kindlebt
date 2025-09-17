@@ -119,3 +119,123 @@ void dump_aipc_handle(aipcHandles_t aipc_handle) {
         aipc_handle.server_id
     );
 }
+
+void dump_uuid2(const uuid_t* uuid) {
+    log_debug(
+        "[%s()]: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+        __func__, uuid->uu[0], uuid->uu[1], uuid->uu[2], uuid->uu[3], uuid->uu[4], uuid->uu[5],
+        uuid->uu[6], uuid->uu[7], uuid->uu[8], uuid->uu[9], uuid->uu[10], uuid->uu[11],
+        uuid->uu[12], uuid->uu[13], uuid->uu[14], uuid->uu[15]
+    );
+}
+
+void dump_bleGattBlobValue_t(const bleGattBlobValue_t* value) {
+    log_debug("Dumping bleGattBlobValue_t");
+    log_debug(
+        "bleGattBlobValue {\n"
+        "  size %d\n"
+        "  offset %d\n"
+        "  data NEXT\n"
+        "}",
+        value->size, value->offset
+    );
+    printf("bleGattBlobValue.data = ");
+    for (uint16_t i = 0; i < value->size; ++i) {
+        printf("0x%02X ", value->data[i]);
+    }
+    printf("\n");
+}
+
+void dump_bleGattRecord_t(const bleGattRecord_t* record) {
+    log_debug("Dumping bleGattRecord_t");
+    dump_uuid2(&record->uuid);
+    log_debug(
+        "bleGattRecord_t {\n"
+        "  uuid PREV\n"
+        "  attProp %d\n"
+        "  attPerm %d\n"
+        "  handle %d (%p)\n"
+        "}",
+        record->attProp, record->attPerm, record->handle, record->handle
+    );
+}
+
+void dump_bleGattDescriptor_t(const bleGattDescriptor_t* descriptor) {
+    if (descriptor == NULL) {
+        log_debug("Dumping bleGattDescriptor_t: NULL");
+        return;
+    }
+
+    log_debug("Dumping bleGattDescriptor_t");
+    log_debug(
+        "bleGattDescriptor_t {\n"
+        "  gattRecord NEXT\n"
+        "  blobValue NEXT\n"
+        "  is_set %d\n"
+        "  is_notify %d\n"
+        "  desc_auth_retry %d\n"
+        "  write_type %d\n"
+        "}",
+        descriptor->is_set, descriptor->is_notify, descriptor->desc_auth_retry,
+        descriptor->write_type
+    );
+
+    dump_bleGattRecord_t(&descriptor->gattRecord);
+    dump_bleGattBlobValue_t(&descriptor->blobValue);
+}
+
+void dump_bleGattCharacteristicsValue_t(const bleGattCharacteristicsValue_t chars_value) {
+    log_debug("Dumping bleGattCharacteristicsValue_t");
+    log_debug(
+        "bleGattCharacteristicsValue_t {\n"
+        "  format %d\n"
+        "  gattRecord NEXT\n"
+        "  gattDescriptor NEXT\n"
+        "  auth_retry %d\n"
+        "  read_auth_retry %d\n"
+        "  write_type %d\n"
+        "  descList NEXT\n"
+        "  multiDescCount %d\n"
+        "}",
+        chars_value.format, chars_value.auth_retry, chars_value.read_auth_retry,
+        chars_value.write_type, chars_value.multiDescCount
+    );
+
+    if (chars_value.format == 255) {
+        dump_bleGattBlobValue_t(&chars_value.blobValue);
+    }
+
+    dump_bleGattRecord_t(&chars_value.gattRecord);
+    log_debug("Main descriptor:");
+    dump_bleGattDescriptor_t(&chars_value.gattDescriptor);
+
+    log_debug("Linked list descriptors:");
+    if (chars_value.multiDescCount) {
+        struct aceBT_gattDescRec_t* desc_rec = NULL;
+        STAILQ_FOREACH(desc_rec, &chars_value.descList, link) {
+            dump_bleGattDescriptor_t(&desc_rec->value);
+        }
+    }
+    log_debug("Done linked list descriptors");
+}
+
+void dump_notify_data_t(const notify_data_t* data) {
+    log_debug("Dumping notify_data_t");
+    log_debug(
+        "notify_data_t {\n"
+        "  size %d\n"
+        "  conn_handle %d (%p)\n"
+        "  session_handle %d (%p)\n"
+        // "  confirm %d\n"
+        "  value NEXT\n"
+        "  data_len %d\n"
+        "  data %p SKIPPED\n"
+        "}",
+        data->size, data->conn_handle, data->conn_handle, data->session_handle,
+        data->session_handle,
+        // data->confirm,
+        data->data_len, data->data
+    );
+
+    dump_bleGattCharacteristicsValue_t(data->value);
+}

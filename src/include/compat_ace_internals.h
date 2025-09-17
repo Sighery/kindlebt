@@ -601,6 +601,38 @@ typedef struct {
 } __attribute__((packed)) acebt_gattc_write_desc_data_t;
 typedef acebt_gattc_write_desc_data_t gattc_write_desc_data_t;
 
+/**
+ * Used for the pre 5.17.0 bleSetNotification implementation
+ */
+typedef struct {
+    bool enable;
+    uint32_t size;
+    uint32_t conn_handle;
+    uint32_t session_handle;
+    bleGattCharacteristicsValue_t chars;
+} __attribute__((packed)) acebt_gattc_set_notify_data_t;
+typedef acebt_gattc_set_notify_data_t gattc_set_notify_data_t;
+
+void serialize_ble_set_notify(
+    gattc_set_notify_data_t* data, uint32_t conn_handle, bleGattCharacteristicsValue_t charsValue,
+    bool enable
+);
+
+/**
+ * Used during BT event handler GATT Client notify characteristic operations
+ */
+// The schema for this struct has changed. It used to have a `uint8_t confirm` field
+// after `session_handle`, and `data_len` used to be `uint16_t`.
+typedef struct {
+    uint32_t size;
+    uint32_t conn_handle;
+    uint32_t session_handle;
+    bleGattCharacteristicsValue_t value;
+    uint32_t data_len;
+    uint8_t data[];
+} __attribute__((packed)) acebt_notify_data_t;
+typedef acebt_notify_data_t notify_data_t;
+
 #ifdef __cplusplus
 }
 #endif

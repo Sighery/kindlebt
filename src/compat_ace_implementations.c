@@ -9,6 +9,7 @@
 
 #include "compat_ace_handler.h"
 #include "compat_ace_internals.h"
+#include "compat_ace_shims.h"
 #include "compat_ace_utils.h"
 #include "compat_acealloc.h"
 
@@ -257,6 +258,67 @@ status_t pre5170_bleWriteDescriptor(
     }
 
     shadow_aceAlloc_free(out_data);
+
+    return status;
+}
+
+status_t pre5170_bleSetNotification(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value, bool enable
+) {
+    log_debug("Called into pre 5.17 %s", __func__);
+
+    status_t status;
+    aipcHandles_t handle;
+
+    status = getSessionInfo(session_handle, &handle);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Couldn't get session info. Result: %d", __func__, status);
+        return ACE_STATUS_BAD_PARAM;
+    }
+
+    gattc_set_notify_data_t data;
+    serialize_ble_set_notify(&data, (uint32_t)conn_handle, chars_value, enable);
+
+    status = aipc_invoke_sync_call(ACE_BT_BLE_GATT_CLIENT_SET_NOTIFY_API, &data, data.size);
+    if (status != ACE_STATUS_OK) {
+        log_error("[%s()]: Failed to send AIPC call. Status: %d", __func__, status);
+        return status;
+    }
+
+    struct aceBT_gattDescRec_t* desc_rec = NULL;
+    STAILQ_FOREACH(desc_rec, &chars_value.descList, link) {
+        if (desc_rec->value.is_set && desc_rec->value.is_notify) break;
+    }
+
+    if (desc_rec == NULL) {
+        log_error(
+            "[%s()]: Couldn't find CCCD descriptor. Are you sure this characteristic supports "
+            "notifications?",
+            __func__
+        );
+        return ACE_STATUS_BAD_PARAM;
+    }
+
+    // Store our enable/disable option as little endian directly
+    uint8_t subscription[2];
+    uint16_t le = htole16((uint16_t)enable);
+    memcpy(subscription, &le, sizeof(le));
+
+    // Set the linked list find as the main gattDescriptor for calls to WriteDescriptor
+    chars_value.gattDescriptor.gattRecord.handle = desc_rec->value.gattRecord.handle;
+    chars_value.gattDescriptor.blobValue.data = malloc(sizeof(subscription));
+    if (chars_value.gattDescriptor.blobValue.data == NULL) {
+        log_error("[%s()]: Couldn't allocate memory for CCCD descriptor?", __func__);
+        return ACE_STATUS_OUT_OF_MEMORY;
+    }
+    chars_value.gattDescriptor.blobValue.offset = 0;
+    chars_value.gattDescriptor.blobValue.size = sizeof(subscription);
+    memcpy(chars_value.gattDescriptor.blobValue.data, subscription, sizeof(subscription));
+
+    status = shim_bleWriteDescriptor(
+        session_handle, conn_handle, &chars_value, ACEBT_BLE_WRITE_TYPE_RESP_REQUIRED
+    );
 
     return status;
 }

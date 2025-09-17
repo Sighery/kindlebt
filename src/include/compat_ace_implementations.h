@@ -27,6 +27,10 @@ status_t pre5170_bleWriteDescriptor(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t* chars_value, responseType_t request_type
 );
+status_t pre5170_bleSetNotification(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value, bool enable
+);
 
 #ifdef __cplusplus
 }

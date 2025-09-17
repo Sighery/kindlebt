@@ -213,3 +213,29 @@ status_t shim_bleWriteDescriptor(
         return pre5170_bleWriteDescriptor(session_handle, conn_handle, chars_value, request_type);
     }
 }
+
+typedef status_t (*aceBT_bleSetNotification_fn_t)(
+    sessionHandle, bleConnHandle, bleGattCharacteristicsValue_t, bool
+);
+
+status_t shim_bleSetNotification(
+    sessionHandle session_handle, bleConnHandle conn_handle,
+    bleGattCharacteristicsValue_t chars_value, bool enable
+) {
+    static aceBT_bleSetNotification_fn_t new_api = NULL;
+
+#ifndef FORCE_OLD_API
+    static bool initialized = false;
+
+    if (!initialized) {
+        new_api = (aceBT_bleSetNotification_fn_t)dlsym(RTLD_DEFAULT, "aceBT_bleSetNotification");
+        initialized = true;
+    }
+#endif
+
+    if (new_api) {
+        return new_api(session_handle, conn_handle, chars_value, enable);
+    } else {
+        return pre5170_bleSetNotification(session_handle, conn_handle, chars_value, enable);
+    }
+}

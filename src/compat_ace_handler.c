@@ -109,6 +109,30 @@ void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     } break;
     case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED");
+        if (p_client_callbacks->notify_characteristics_cb == NULL) {
+            log_error("[%s()]: notify_characteristics_cb not implemented", __func__);
+            break;
+        }
+
+        notify_data_t* data = (notify_data_t*)task->buffer;
+
+        // TODO: Decompiled code does way more assignments. This might not be feature complete
+        data->value.blobValue.data = data->data;
+        uint32_t len32 = data->data_len;
+        if (len32 > UINT16_MAX) {
+            log_error(
+                "[%s() ACE_BT_CALLBACK_GATTC_NOTIFY_CHARS_CHANGED]: data_len too big: %d", __func__,
+                data->data_len
+            );
+            len32 = UINT16_MAX;
+        }
+        data->value.blobValue.size = (uint16_t)len32;
+        data->value.blobValue.offset = 0;
+        data->value.format = BLE_FORMAT_BLOB;
+
+        p_client_callbacks->notify_characteristics_cb(
+            (bleConnHandle)data->conn_handle, data->value
+        );
     } break;
     case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP: {
         log_debug("BLE GATTC callback handler, case ACE_BT_CALLBACK_GATTC_DESC_WRITE_RSP");
