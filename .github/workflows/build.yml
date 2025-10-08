@@ -13,6 +13,20 @@ env:
   MESON_VERSION: "1.7.2"
   SDK_LATEST: "https://github.com/Sighery/kindle-sdk/releases/latest"
   SDK_RELEASE: "https://github.com/Sighery/kindle-sdk/releases/latest/download/"
+  BUILD_TARGETS: |
+    [
+      {
+        "name": "kindlebt-hf",
+        "platform": "arm-kindlehf-linux-gnueabihf",
+        "sdk": "scribe1-5.17.3.tar.gz"
+      }
+    ]
+# Not currently supported, but the SF target would be:
+# {
+#   "name": "kindlebt-sf",
+#   "platform": "arm-kindlepw2-linux-gnueabi",
+#   "sdk": "kindlepw5-5.16.2.1.1.tar.gz"
+# }
 
 jobs:
   build:
@@ -39,25 +53,40 @@ jobs:
 
       - name: Setup SDKs
         run: |
-          echo "${SDK_RELEASE}kindlepw5-5.16.2.1.1.tar.gz" >> sdk-urls.txt
-          echo "${SDK_RELEASE}scribe1-5.17.3.tar.gz" >> sdk-urls.txt
+          echo '${{ env.BUILD_TARGETS }}' | jq -r '"${{ env.SDK_RELEASE }}" + .[].sdk' > sdk-urls.txt
           cat sdk-urls.txt | parallel -j8 wget -nv {}
 
-          mkdir sdk-sf sdk-hf
+          echo '${{ env.BUILD_TARGETS }}' | jq -c '.[]' | while read target; do
+            name=$(echo "$target" | jq -r '.name')
+            sdk=$(echo "$target" | jq -r '.sdk')
 
-          tar -xzf kindlepw5-5.16.2.1.1.tar.gz -C sdk-sf
-          tar -xzf scribe1-5.17.3.tar.gz -C sdk-hf
+            build_dir="sdk-${name}"
+
+            mkdir "$build_dir"
+            tar -xzf "$sdk" -C "$build_dir"
+          done
 
       - name: Configure project
         run: |
-          mkdir .build_sf .build_hf
-          meson setup --wipe --cross-file ./sdk-sf/x-tools/arm-kindlepw2-linux-gnueabi/meson-crosscompile.txt .build_sf/
-          meson setup --wipe --cross-file ./sdk-hf/x-tools/arm-kindlehf-linux-gnueabihf/meson-crosscompile.txt .build_hf/
+          echo '${{ env.BUILD_TARGETS }}' | jq -c '.[]' | while read target; do
+            name=$(echo "$target" | jq -r '.name')
+            platform=$(echo "$target" | jq -r '.platform')
+
+            build_dir=".build_${name}"
+
+            mkdir "$build_dir"
+            meson setup --wipe --cross-file "./sdk-${name}/x-tools/${platform}/meson-crosscompile.txt" "${build_dir}"
+          done
 
       - name: Compile project
         run: |
-          meson compile -C .build_sf/
-          meson compile -C .build_hf/
+          echo '${{ env.BUILD_TARGETS }}' | jq -c '.[]' | while read target; do
+            name=$(echo "$target" | jq -r '.name')
+
+            build_dir=".build_${name}"
+
+            meson compile -C "${build_dir}/"
+          done
 
       - name: Upload meson-log
         uses: actions/upload-artifact@v4
@@ -69,8 +98,13 @@ jobs:
 
       - name: Package binaries
         run: |
-          tar -czf kindlebt-sf.tar.gz -C .build_sf libkindlebt.so kindlebt_test
-          tar -czf kindlebt-hf.tar.gz -C .build_hf libkindlebt.so kinblebt_test
+          echo '${{ env.BUILD_TARGETS }}' | jq -c '.[]' | while read target; do
+            name=$(echo "$target" | jq -r '.name')
+
+            build_dir=".build_${name}"
+
+            tar -czf "${name}.tar.gz" -C "$build_dir" libkindlebt.so kindlebt_test
+          done
 
       - name: Release
         uses: softprops/action-gh-release@v2
