@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "kindlebt.h"
+#include <kindlebt/kindlebt.h>
 
 static sessionHandle bt_session = NULL;
 static bleConnHandle conn_handle = NULL;

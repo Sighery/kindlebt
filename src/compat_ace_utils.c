@@ -1,11 +1,11 @@
-#include "compat_ace_utils.h"
+#include <kindlebt/compat_ace_utils.h>
 
 #include <stddef.h>
 #include <stdio.h>
 
 #include "log.h"
 
-#include "compat_ace_internals.h"
+#include <kindlebt/compat_ace_internals.h>
 
 void dump_hex(const void* ptr, size_t size) {
     const unsigned char* data = (const unsigned char*)ptr;

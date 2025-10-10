@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 
-#include "compat_ace.h"
+#include <kindlebt/compat_ace.h>
 
 #include <dlfcn.h>
 #include <stdbool.h>

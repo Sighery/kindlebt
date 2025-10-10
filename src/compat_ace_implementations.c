@@ -1,4 +1,4 @@
-#include "compat_ace_implementations.h"
+#include <kindlebt/compat_ace_implementations.h>
 
 #include <endian.h>
 #include <stdbool.h>
@@ -7,11 +7,11 @@
 
 #include "log.h"
 
-#include "compat_ace_handler.h"
-#include "compat_ace_internals.h"
-#include "compat_ace_shims.h"
-#include "compat_ace_utils.h"
-#include "compat_acealloc.h"
+#include <kindlebt/compat_ace_handler.h>
+#include <kindlebt/compat_ace_internals.h>
+#include <kindlebt/compat_ace_shims.h>
+#include <kindlebt/compat_ace_utils.h>
+#include <kindlebt/compat_acealloc.h>
 
 /**
  * Static local helper function to create a callback mask based on the

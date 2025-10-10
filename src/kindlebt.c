@@ -1,4 +1,4 @@
-#include "kindlebt.h"
+#include <kindlebt/kindlebt.h>
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -10,8 +10,8 @@
 
 #include "log.h"
 
-#include "compat_ace.h"
-#include "kindlebt_defines.h"
+#include <kindlebt/compat_ace.h>
+#include <kindlebt/kindlebt_defines.h>
 
 #include "kindlebt_callbacks.c"
 

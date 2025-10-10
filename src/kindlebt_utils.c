@@ -1,4 +1,4 @@
-#include "kindlebt_utils.h"
+#include <kindlebt/kindlebt_utils.h>
 
 #include <errno.h>
 #include <pthread.h>
@@ -8,8 +8,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "kindlebt_defines.h"
-#include "kindlebt_log.h"
+#include <kindlebt/kindlebt_defines.h>
+#include <kindlebt/kindlebt_log.h>
 
 #define ADDR_WITH_COLON_LEN 17
 #define ADDR_WITHOUT_COLON_LEN 12

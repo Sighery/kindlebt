@@ -1,7 +1,7 @@
 project(
   'kindlebt',
   'c',
-  version: 'v1.0.0',
+  version: 'v0.1.0',
   default_options: [
     'buildtype=debug',
   ],
@@ -40,7 +40,7 @@ binary_sources = files(
 )
 
 include_dirs = include_directories(
-  './src/include/',
+  './include/',
 )
 
 acebt_dep = declare_dependency(

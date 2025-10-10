@@ -1,10 +1,10 @@
-#include "compat_ace_handler.h"
+#include <kindlebt/compat_ace_handler.h>
 
 #include "log.h"
 
-#include "compat_ace_internals.h"
-#include "compat_ace_shims.h"
-#include "compat_ace_utils.h"
+#include <kindlebt/compat_ace_internals.h>
+#include <kindlebt/compat_ace_shims.h>
+#include <kindlebt/compat_ace_utils.h>
 
 void pre5170_gattc_cb_handler(aceAipc_parameter_t* task) {
     log_debug("Called into pre 5.17 %s", __func__);

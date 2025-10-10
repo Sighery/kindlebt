@@ -1,13 +1,13 @@
 #define _GNU_SOURCE
 
-#include "compat_ace_shims.h"
+#include <kindlebt/compat_ace_shims.h>
 
 #include <dlfcn.h>
 #include <stdbool.h>
 
 #include "log.h"
 
-#include "compat_ace_implementations.h"
+#include <kindlebt/compat_ace_implementations.h>
 
 /* Internal typedefs matching the two getSessionFor* functions
  * getSessionForCallback < 5.17

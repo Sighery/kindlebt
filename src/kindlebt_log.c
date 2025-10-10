@@ -1,4 +1,4 @@
-#include "kindlebt_log.h"
+#include <kindlebt/kindlebt_log.h>
 
 #include <stdarg.h>
 #include <stdlib.h>

@@ -5,9 +5,9 @@
 
 #include "log.h"
 
-#include "kindlebt.h"
-#include "kindlebt_defines.h"
-#include "kindlebt_log.h"
+#include <kindlebt/kindlebt.h>
+#include <kindlebt/kindlebt_defines.h>
+#include <kindlebt/kindlebt_log.h>
 
 #include "kindlebt_application.c"
 #include "kindlebt_utils.c"

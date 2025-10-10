@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 
-#include "compat_ace_shims.h"
+#include <kindlebt/compat_ace_shims.h>
 
 #include <dlfcn.h>
 
