@@ -7,5 +7,6 @@ pkgs.mkShell {
     gnutar
     clang-tools
     gdb unixtools.xxd
+    doxygen inotify-tools
   ];
 }

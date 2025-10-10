@@ -1,0 +1,68 @@
+# Doxyfile 1.13.2
+
+#---------------------------------------------------------------------------
+# Project related configuration options
+#---------------------------------------------------------------------------
+
+PROJECT_NAME           = "kindlebt"
+PROJECT_BRIEF          = "Bluetooth functionality for Kindle 11th gen and up"
+OUTPUT_DIRECTORY       = doxygen-docs/
+OPTIMIZE_OUTPUT_FOR_C  = YES
+INLINE_GROUPED_CLASSES = YES
+INLINE_SIMPLE_STRUCTS  = YES
+TYPEDEF_HIDES_STRUCT   = YES
+NUM_PROC_THREADS       = 0
+
+#---------------------------------------------------------------------------
+# Build related configuration options
+#---------------------------------------------------------------------------
+
+HIDE_SCOPE_NAMES       = YES
+HIDE_COMPOUND_REFERENCE= YES
+SHOW_INCLUDE_FILES     = NO
+LAYOUT_FILE            = manual/DoxygenLayout.xml
+
+#---------------------------------------------------------------------------
+# Configuration options related to the input files
+#---------------------------------------------------------------------------
+
+INPUT                  = include \
+                         src \
+                         examples \
+                         README.md \
+                         manual/limitations.md \
+                         manual/installation.md \
+                         manual/building.md \
+                         manual/darkroot.md
+RECURSIVE              = YES
+EXAMPLE_PATH           = examples
+EXAMPLE_RECURSIVE      = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+
+#---------------------------------------------------------------------------
+# Configuration options related to source browsing
+#---------------------------------------------------------------------------
+
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+
+#---------------------------------------------------------------------------
+# Configuration options related to the HTML output
+#---------------------------------------------------------------------------
+
+GENERATE_HTML          = YES
+HTML_HEADER            = manual/header.html
+HTML_EXTRA_STYLESHEET  = vendor/doxygen-awesome-css/doxygen-awesome.css \
+                         vendor/doxygen-awesome-css/doxygen-awesome-sidebar-only.css \
+                         vendor/doxygen-awesome-css/doxygen-awesome-sidebar-only-darkmode-toggle.css
+HTML_EXTRA_FILES       = vendor/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js \
+                         vendor/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
+HTML_COLORSTYLE        = LIGHT
+DISABLE_INDEX          = NO
+SHOW_ENUM_VALUES       = YES
+
+#---------------------------------------------------------------------------
+# Configuration options related to the LaTeX output
+#---------------------------------------------------------------------------
+
+GENERATE_LATEX         = NO

@@ -50,3 +50,6 @@ subprojects/darkroot/
 
 # Nix
 .direnv/
+
+# Doxygen docs
+doxygen-docs/
