@@ -18,9 +18,9 @@ logc = subproject('logc')
 logc_dep = logc.get_variable('logc_dep')
 
 # Headers dependency
-ace_bt_headers = subproject('ace_bt_headers')
-ace_bt_headers_inc = ace_bt_headers.get_variable('ace_bt_inc')
-ace_bt_headers_dep = declare_dependency(include_directories: ace_bt_headers_inc)
+darkroot = subproject('darkroot')
+darkroot_inc = darkroot.get_variable('darkroot_inc')
+darkroot_dep = declare_dependency(include_directories: darkroot_inc)
 
 # Actual .so from the Kindle
 ace_bt_pc_dep = dependency('ace_bt', method: 'pkg-config')
@@ -44,7 +44,7 @@ include_dirs = include_directories(
 )
 
 acebt_dep = declare_dependency(
-  dependencies: [ace_bt_pc_dep, ace_bt_headers_dep],
+  dependencies: [ace_bt_pc_dep, darkroot_dep],
 )
 
 # Needed for the acebt ABI introspection

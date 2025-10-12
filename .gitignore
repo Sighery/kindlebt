@@ -46,7 +46,7 @@
 # Subprojects
 subprojects/packagecache/
 subprojects/logc/
-subprojects/ace_bt_headers/
+subprojects/darkroot/
 
 # Nix
 .direnv/
