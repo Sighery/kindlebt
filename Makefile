@@ -1,3 +1,3 @@
 .PHONY: format
 format:
-	@clang-format -i -style=file -- src/**.c include/**/*.h
+	@clang-format -i -style=file -- src/**.c include/**/*.h examples/**.c

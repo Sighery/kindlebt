@@ -35,9 +35,6 @@ library_sources = files(
   './src/compat_ace_handler.c',
   './src/compat_acealloc.c',
 )
-binary_sources = files(
-  './src/main.c',
-)
 
 include_dirs = include_directories(
   './include/',
@@ -73,33 +70,6 @@ cleanup_ace_bt = custom_target(
     kindlebt,
   ],
   output: 'fake1',
-  command: ['patchelf', '--replace-needed', '@INPUT0@', 'libace_bt.so', '@INPUT1@'],
-  build_by_default: true,
-)
-
-kindlebt_test = executable(
-  'kindlebt_test',
-  binary_sources,
-  include_directories: include_dirs,
-  dependencies: [
-    acebt_dep,
-    logc_dep,
-  ],
-  link_with: [
-    kindlebt,
-  ],
-  c_args: '-static-libgcc',
-  link_args: ['-static-libgcc'],
-)
-
-cleanup_kindlebt_test = custom_target(
-  'kindlebt_test: clean up libace_bt hard link',
-  depends: kindlebt_test,
-  input: [
-    join_paths(sysroot, 'usr/lib', 'libace_bt.so'),
-    kindlebt_test,
-  ],
-  output: 'fake2',
   command: ['patchelf', '--replace-needed', '@INPUT0@', 'libace_bt.so', '@INPUT1@'],
   build_by_default: true,
 )
