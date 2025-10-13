@@ -1,0 +1,70 @@
+name: Documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Doxyfile'
+      - 'README.md'
+      - '.github/workflows/docs.yml'
+      - 'src/**'
+      - 'include/**'
+      - 'examples/**'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "docs"
+  cancel-in-progress: false
+
+env:
+  DOXYGEN_DOWNLOAD: https://github.com/doxygen/doxygen/releases/download/Release_1_13_2/doxygen-1.13.2.linux.bin.tar.gz
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install Doxygen
+        run: |
+          wget -nv $DOXYGEN_DOWNLOAD
+          tar -xaf doxygen-1.13.2.linux.bin.tar.gz
+          cd doxygen-1.13.2/
+          sudo make install
+
+      - name: Generate docs
+        id: build
+        run: doxygen
+
+      - name: Upload docs artifact
+        id: upload
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: doxygen-docs/html/
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    needs: build
+
+    steps:
+      - name: Deploy to Github Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -121,7 +121,7 @@ status_t bleDeregisterGattClient(sessionHandle session_handle);
  * @brief Discover all services of a remote GATT Server
  *
  * Necessary step to discover the GATT Server services. Must be called before
- * @ref bleGattDatabase.
+ * @ref bleGetDatabase.
  */
 status_t bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle);
 /**
