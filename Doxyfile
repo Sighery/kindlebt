@@ -59,6 +59,7 @@ HTML_EXTRA_FILES       = vendor/doxygen-awesome-css/doxygen-awesome-darkmode-tog
                          vendor/doxygen-awesome-css/doxygen-awesome-paragraph-link.js
 HTML_COLORSTYLE        = LIGHT
 DISABLE_INDEX          = NO
+ENUM_VALUES_PER_LINE   = 1
 SHOW_ENUM_VALUES       = YES
 
 #---------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 
 #include "log.h"
 
-void kindlebt_set_log_level(int level) { log_set_level(level); }
+void kindlebt_set_log_level(log_level_t level) { log_set_level(level); }
 
 char* append_to_buffer(char* buf, size_t* size, size_t* offset, const char* fmt, ...) {
     va_list args;
