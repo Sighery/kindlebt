@@ -8,7 +8,12 @@ logc_inc = include_directories('src')
 logc_sources = [
     'src/log.c',
 ]
-logc_lib = static_library('logc', logc_sources, include_directories: logc_inc)
+logc_lib = static_library(
+    'logc',
+    logc_sources,
+    include_directories: logc_inc,
+    install: true
+)
 
 logc_dep = declare_dependency(
     include_directories: logc_inc,

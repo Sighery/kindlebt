@@ -76,8 +76,9 @@ status_t shim_bleDeregisterGattClient(sessionHandle session_handle) {
     static bool initialized = false;
 
     if (!initialized) {
-        new_api = (aceBT_bleDeRegisterGattClient_fn_t
-        )dlsym(RTLD_DEFAULT, "aceBT_bleDeRegisterGattClient");
+        new_api = (aceBT_bleDeRegisterGattClient_fn_t)dlsym(
+            RTLD_DEFAULT, "aceBT_bleDeRegisterGattClient"
+        );
         initialized = true;
     }
 #endif
@@ -173,8 +174,9 @@ status_t shim_bleWriteCharacteristic(
     static bool initialized = false;
 
     if (!initialized) {
-        new_api = (aceBT_bleWriteCharacteristics_fn_t
-        )dlsym(RTLD_DEFAULT, "aceBT_bleWriteCharacteristics");
+        new_api = (aceBT_bleWriteCharacteristics_fn_t)dlsym(
+            RTLD_DEFAULT, "aceBT_bleWriteCharacteristics"
+        );
         initialized = true;
     }
 #endif

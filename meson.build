@@ -23,7 +23,7 @@ darkroot_inc = darkroot.get_variable('darkroot_inc')
 darkroot_dep = declare_dependency(include_directories: darkroot_inc)
 
 # Actual .so from the Kindle
-ace_bt_pc_dep = dependency('ace_bt', method: 'pkg-config')
+ace_bt_pc_dep = dependency('ace_bt', method: 'pkg-config', static: false)
 
 library_sources = files(
   './src/kindlebt.c',
@@ -58,6 +58,18 @@ kindlebt = shared_library(
   ],
 )
 
+kindlebt_static = static_library(
+  'kindlebt',
+  library_sources,
+  include_directories: include_dirs,
+  dependencies: [
+    acebt_dep,
+    logc_dep,
+    dl_dep,
+  ],
+  install: true,
+)
+
 # Defined in cross file properties
 sysroot = meson.get_external_property('sys_root')
 
@@ -71,5 +83,16 @@ cleanup_ace_bt = custom_target(
   ],
   output: 'fake1',
   command: ['patchelf', '--replace-needed', '@INPUT0@', 'libace_bt.so', '@INPUT1@'],
+  build_by_default: true,
+)
+
+# Copy the logc archive into the root build dir
+logc_lib = logc.get_variable('logc_lib')
+copy_logc = custom_target(
+  'liblogc.a: copy to root build dir',
+  depends: logc_lib,
+  input: logc_lib,
+  output: 'liblogc.a',
+  command: ['cp', '@INPUT@', '@OUTPUT@'],
   build_by_default: true,
 )
