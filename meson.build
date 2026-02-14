@@ -96,3 +96,34 @@ copy_logc = custom_target(
   command: ['cp', '@INPUT@', '@OUTPUT@'],
   build_by_default: true,
 )
+
+example_basic_sources = files(
+  './examples/basic_usage.c',
+)
+
+example_basic = executable(
+  'example_basic',
+  example_basic_sources,
+  include_directories: include_dirs,
+  dependencies: [
+    acebt_dep,
+    logc_dep,
+  ],
+  link_with: [
+    kindlebt,
+  ],
+  c_args: '-static-libgcc',
+  link_args: ['-static-libgcc'],
+)
+
+cleanup_example_basic = custom_target(
+  'example_basic: clean up libace_bt hard link',
+  depends: example_basic,
+  input: [
+    join_paths(sysroot, 'usr/lib', 'libace_bt.so'),
+    example_basic,
+  ],
+  output: 'fake2',
+  command: ['patchelf', '--replace-needed', '@INPUT0@', 'libace_bt.so', '@INPUT1@'],
+  build_by_default: true,
+)

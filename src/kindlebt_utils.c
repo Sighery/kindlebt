@@ -169,20 +169,21 @@ char* utilsDumpServer(bleGattsService_t* server, char* log_buff, size_t* size, s
     return log_buff;
 }
 
-struct aceBT_gattCharRec_t* utilsFindCharRec(uuid_t uuid, uint8_t uuid_len) {
+struct aceBT_gattCharRec_t*
+utilsFindCharRec(bleGattsService_t* services, uint32_t noSvcs, uuid_t uuid, uint8_t uuid_len) {
     struct aceBT_gattCharRec_t* char_rec = NULL;
 
-    if (!pGgatt_service) {
+    if (!services) {
         log_error("GATT DB has not been populated yet!");
         return (NULL);
     }
 
     // Iterate through all services
-    for (uint32_t i = 0; i < gNo_svc; i++) {
-        bleGattsService_t* services = &pGgatt_service[i];
+    for (uint32_t i = 0; i < noSvcs; i++) {
+        bleGattsService_t* service = &services[i];
 
         // Iterate through all characteristics and look for char uuid
-        STAILQ_FOREACH(char_rec, &services->charsList, link) {
+        STAILQ_FOREACH(char_rec, &service->charsList, link) {
             // If char uuid matches, read characteristic
             if (!memcmp(char_rec->value.gattRecord.uuid.uu, &uuid.uu, uuid_len)) {
                 return (char_rec);

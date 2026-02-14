@@ -131,8 +131,13 @@ status_t bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn
  * Inside the services you'll also find the available characteristics. Even if you know
  * the Characteristic UUID ahead of time, this step is necessary to populate the local
  * references.
+ *
+ * @param services_out Pointer to write out the GATT DB array to
+ * @param services_count Pointer to write out the count of GATT DB services to
  */
-status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service);
+status_t bleGetDatabase(
+    bleConnHandle conn_handle, bleGattsService_t** services_out, uint32_t* services_count
+);
 
 /**
  * @brief Connect to a BLE device

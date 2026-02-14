@@ -21,10 +21,11 @@ uint16_t utilsConvertHexStrToByteArray(char* input, uint8_t* output);
  * @brief Find a GATT Characteristic Record by UUID
  *
  * Even if you know the UUID of a Characteristic, you need to find it in
- * @ref pGgatt_service. This is because the library uses these local structs to provide
+ * @ref bleGattsService_t. This is because the library uses these local structs to provide
  * and interface for read/writes.
  */
-struct aceBT_gattCharRec_t* utilsFindCharRec(uuid_t uuid, uint8_t uuid_len);
+struct aceBT_gattCharRec_t*
+utilsFindCharRec(bleGattsService_t* services, uint32_t noSvcs, uuid_t uuid, uint8_t uuid_len);
 
 /** @} */ // KINDLEBT_PUBLIC_API
 
@@ -32,6 +33,7 @@ void setGattBlobFromBytes(
     bleGattCharacteristicsValue_t* chars_value, const uint8_t* data, uint16_t size
 );
 void freeGattBlob(bleGattCharacteristicsValue_t* chars_value);
+char* utilsDumpServer(bleGattsService_t* server, char* log_buff, size_t* size, size_t* offset);
 
 #ifdef __cplusplus
 }

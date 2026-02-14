@@ -102,16 +102,19 @@ status_t bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn
     return cond_status;
 }
 
-status_t bleGetDatabase(bleConnHandle conn_handle, bleGattsService_t* p_gatt_service) {
+status_t bleGetDatabase(
+    bleConnHandle conn_handle, bleGattsService_t** services_out, uint32_t* services_count
+) {
     status_t db_status = shim_bleGetDatabase(conn_handle);
     if (db_status != ACE_STATUS_OK) return db_status;
 
     status_t cond_status =
         waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db);
 
-    if (cond_status == ACE_STATUS_OK) p_gatt_service = pGgatt_service;
+    if (cond_status != ACE_STATUS_OK) return cond_status;
 
-    return cond_status;
+    *services_count = gNo_svc;
+    return bleCloneGattService(services_out, pGgatt_service, gNo_svc);
 }
 
 status_t bleCloneGattService(

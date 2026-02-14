@@ -6,7 +6,8 @@
 
 static sessionHandle bt_session = NULL;
 static bleConnHandle conn_handle = NULL;
-static bleGattsService_t gatt_db;
+static bleGattsService_t* gatt_db = NULL;
+static uint32_t gatt_db_count;
 
 // For our dumb callback waits implementation
 static bool read_characteristic = false;
@@ -171,7 +172,7 @@ int main() {
     // Retrieval of services is a different and also necessary step from discovery
     // Even if you know the Characteristic UUIDs ahead of time, you still need to
     // discover and retrieve the services
-    status = bleGetDatabase(conn_handle, &gatt_db);
+    status = bleGetDatabase(conn_handle, &gatt_db, &gatt_db_count);
     printf("Requested GATT DB status: %d\n", status);
     if (status != ACE_STATUS_OK) {
         fprintf(stderr, "Cannot retrieve services of BLE device, status: %d\n", status);
@@ -188,7 +189,7 @@ int main() {
              0x00, 0x00},
         .type = ACEBT_UUID_TYPE_16,
     };
-    struct aceBT_gattCharRec_t* charac = utilsFindCharRec(characUuid, 16);
+    struct aceBT_gattCharRec_t* charac = utilsFindCharRec(gatt_db, gatt_db_count, characUuid, 16);
     if (charac == NULL) {
         printf("Couldn't find the characteristic");
         return -9;
