@@ -133,6 +133,28 @@ status_t shim_bleGetDatabase(bleConnHandle conn_handle) {
     }
 }
 
+typedef status_t (*aceBT_bleCleanupGattService_fn_t)(bleGattsService_t*, int);
+
+status_t shim_bleCleanupGattService(bleGattsService_t* service, int no_svc) {
+    static aceBT_bleCleanupGattService_fn_t new_api = NULL;
+
+#ifndef FORCE_OLD_API
+    static bool initialized = false;
+
+    if (!initialized) {
+        new_api =
+            (aceBT_bleCleanupGattService_fn_t)dlsym(RTLD_DEFAULT, "aceBT_bleCleanupGattService");
+        initialized = true;
+    }
+#endif
+
+    if (new_api) {
+        return new_api(service, no_svc);
+    } else {
+        return pre5170_bleCleanupGattService(service, no_svc);
+    }
+}
+
 typedef status_t (*aceBT_bleReadCharacteristics_fn_t)(
     sessionHandle, bleConnHandle, bleGattCharacteristicsValue_t
 );

@@ -114,13 +114,22 @@ status_t bleGetDatabase(
     if (cond_status != ACE_STATUS_OK) return cond_status;
 
     *services_count = gNo_svc;
-    return bleCloneGattService(services_out, pGgatt_service, gNo_svc);
+    status_t clone_status = bleCloneGattService(services_out, pGgatt_service, gNo_svc);
+
+    if (clone_status != ACE_STATUS_OK) return clone_status;
+
+    // Clean up the temporary local copy
+    return bleCleanupGattService(pGgatt_service, gNo_svc);
 }
 
 status_t bleCloneGattService(
     bleGattsService_t** dst_gatt_service, const bleGattsService_t* src_gatt_service, int no_svc
 ) {
     return aceBT_bleCloneGattService(dst_gatt_service, src_gatt_service, no_svc);
+}
+
+status_t bleCleanupGattService(bleGattsService_t* service, int no_svc) {
+    return shim_bleCleanupGattService(service, no_svc);
 }
 
 status_t bleConnect(

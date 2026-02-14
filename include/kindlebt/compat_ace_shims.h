@@ -17,6 +17,7 @@ status_t shim_bleRegisterGattClient(
 status_t shim_bleDeregisterGattClient(sessionHandle session_handle);
 status_t shim_bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle);
 status_t shim_bleGetDatabase(bleConnHandle conn_handle);
+status_t shim_bleCleanupGattService(bleGattsService_t* service, int no_svc);
 status_t shim_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value

@@ -159,6 +159,13 @@ status_t pre5170_bleGetService(bleConnHandle conn_handle) {
     return status;
 }
 
+status_t pre5170_bleCleanupGattService(bleGattsService_t* service, int no_svc) {
+    log_debug("Called into pre 5.17 %s", __func__);
+
+    cleanup_all_service(service, no_svc);
+    return ACE_STATUS_OK;
+}
+
 status_t pre5170_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value

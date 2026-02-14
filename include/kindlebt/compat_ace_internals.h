@@ -526,6 +526,9 @@ void deserealize_all_gatts_register_data(
     register_cback_gatts_list_t* data, bleGattsService_t** gattService, uint32_t* no_svc
 );
 
+/**
+ * Also used for the pre 5.17.0 bleCleanupGattService implementation
+ */
 void cleanup_all_service(bleGattsService_t* service, int no_svc);
 
 /**

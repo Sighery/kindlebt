@@ -138,6 +138,13 @@ status_t bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn
 status_t bleGetDatabase(
     bleConnHandle conn_handle, bleGattsService_t** services_out, uint32_t* services_count
 );
+/**
+ * @brief Clean up retrieved GATT DB
+ *
+ * After you're done with a BLE connection, you should also clean up the retrieved services to
+ * free the memory.
+ */
+status_t bleCleanupGattService(bleGattsService_t* service, int no_svc);
 
 /**
  * @brief Connect to a BLE device

@@ -15,6 +15,7 @@ status_t pre5170_bleRegisterGattClient(
 status_t pre5170_bleDeregisterGattClient(sessionHandle session_handle);
 status_t pre5170_bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle);
 status_t pre5170_bleGetService(bleConnHandle conn_handle);
+status_t pre5170_bleCleanupGattService(bleGattsService_t* service, int no_svc);
 status_t pre5170_bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,
     bleGattCharacteristicsValue_t chars_value
