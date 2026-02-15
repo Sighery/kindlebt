@@ -17,10 +17,11 @@ NUM_PROC_THREADS       = 0
 # Build related configuration options
 #---------------------------------------------------------------------------
 
-HIDE_SCOPE_NAMES       = YES
-HIDE_COMPOUND_REFERENCE= YES
-SHOW_INCLUDE_FILES     = NO
-LAYOUT_FILE            = manual/DoxygenLayout.xml
+HIDE_SCOPE_NAMES        = YES
+HIDE_COMPOUND_REFERENCE = YES
+SHOW_INCLUDE_FILES      = NO
+INTERNAL_DOCS           = YES
+LAYOUT_FILE             = manual/DoxygenLayout.xml
 
 #---------------------------------------------------------------------------
 # Configuration options related to the input files

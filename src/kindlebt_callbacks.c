@@ -20,6 +20,8 @@ bleConnHandle ble_conn_handle;
 uint32_t gNo_svc;
 bleGattsService_t* pGgatt_service = NULL;
 
+device_context_array_t devices_context = {0};
+
 void adapterStateCallback(state_t state) {
     if (state == ACEBT_STATE_ENABLED) {
         log_debug("Callback %s(): state: STATE_ENABLED", __func__);
@@ -86,36 +88,40 @@ void bleConnStateChangedCallback(
         conn_handle, addr
     );
 
-    ble_conn_handle = conn_handle;
+    device_context_t* ctx = dca_find_by_addr(&devices_context, p_addr);
+    if (!ctx) {
+        log_error("Couldn't find device context for conn_handle %p", conn_handle);
+        return;
+    }
 
     if (status == ACEBT_GATT_STATUS_SUCCESS) {
+        pthread_mutex_lock(&ctx->lock);
         if (state == ACEBT_BLE_STATE_CONNECTED) {
             log_info("BLE device %s connected", addr);
-            setCallbackVariable(
-                &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected, true
-            );
-            setCallbackVariable(
-                &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, false
-            );
+            ctx->gattc_connected = true;
+            ctx->gattc_disconnected = false;
+            ctx->handle = conn_handle;
         } else if (state == ACEBT_BLE_STATE_DISCONNECTED) {
             log_info("BLE device %s disconnected", addr);
-            setCallbackVariable(
-                &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected, false
-            );
-            setCallbackVariable(
-                &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_disconnected, true
-            );
+            ctx->gattc_connected = false;
+            ctx->gattc_disconnected = true;
         }
+        pthread_cond_signal(&ctx->cond);
+        pthread_mutex_unlock(&ctx->lock);
     }
 }
 
 void bleGattcServiceDiscoveredCallback(bleConnHandle conn_handle, status_t status) {
     log_debug("Callback %s(): conn_handle %p status %d", __func__, conn_handle, status);
 
+    device_context_t* ctx = dca_find_by_handle(&devices_context, conn_handle);
+    if (!ctx) {
+        log_error("Couldn't find device context for conn_handle %p", conn_handle);
+        return;
+    }
+
     if (status == ACE_STATUS_OK) {
-        setCallbackVariable(
-            &callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_discovered, true
-        );
+        setCallbackVariable(&ctx->lock, &ctx->cond, &ctx->gattc_discovered, true);
     }
 }
 
@@ -124,29 +130,28 @@ void bleGattcGetDbCallback(
 ) {
     log_debug("Callback %s(): conn_handle %p no_svc %" PRIu32 "", __func__, conn_handle, no_svc);
 
-    gNo_svc = no_svc;
-    status_t status = bleCloneGattService(&pGgatt_service, gatt_service, gNo_svc);
-
-    if (status != ACE_STATUS_OK) {
-        log_error("Error copying GATT Database %d\n", status);
+    device_context_t* ctx = dca_find_by_handle(&devices_context, conn_handle);
+    if (!ctx) {
+        log_error("Couldn't find device context for conn_handle %p", conn_handle);
+        return;
+    }
+    if (!ctx->gattdb_out || !ctx->gattdb_count_out) {
+        log_error("GATT DB out pointers not set");
         return;
     }
 
-    size_t size = 1024, offset = 0;
-    char* log_buff = malloc(size);
-    if (!log_buff) return;
-
-    for (uint32_t i = 0; i < no_svc; i++) {
-        log_buff = append_to_buffer(
-            log_buff, &size, &offset, "GATT Database index :%" PRIu32 " %p\n", i, &pGgatt_service[i]
-        );
-        log_buff = utilsDumpServer(&pGgatt_service[i], log_buff, &size, &offset);
+    pthread_mutex_lock(&ctx->lock);
+    status_t clone_status = bleCloneGattService(ctx->gattdb_out, gatt_service, no_svc);
+    if (clone_status != ACE_STATUS_OK) {
+        log_error("Error copying GATT Database %d", clone_status);
+        return;
     }
+    *(ctx->gattdb_count_out) = no_svc;
 
-    log_debug("%s", log_buff);
-    free(log_buff);
+    ctx->gattdb_retrieved = true;
+    pthread_cond_signal(&ctx->cond);
 
-    setCallbackVariable(&callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db, true);
+    pthread_mutex_unlock(&ctx->lock);
 }
 
 void bleGattcNotifyCharsCallback(

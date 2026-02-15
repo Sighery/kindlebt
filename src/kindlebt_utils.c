@@ -247,3 +247,58 @@ void setCallbackVariable(pthread_mutex_t* lock, pthread_cond_t* cond, bool* flag
     pthread_cond_signal(cond);
     pthread_mutex_unlock(lock);
 }
+
+device_context_t* dca_add_new(device_context_array_t* arr) {
+    if (arr->count == arr->capacity) {
+        size_t new_capacity = arr->capacity == 0 ? 4 : arr->capacity * 2;
+        arr->items = realloc(arr->items, new_capacity * sizeof(device_context_t));
+        arr->capacity = new_capacity;
+    }
+
+    device_context_t* ctx = &arr->items[arr->count++];
+    memset(ctx, 0, sizeof(*ctx));
+
+    pthread_mutex_init(&ctx->lock, NULL);
+    pthread_cond_init(&ctx->cond, NULL);
+
+    return ctx;
+}
+
+device_context_t* dca_find_by_handle(device_context_array_t* arr, const bleConnHandle conn_handle) {
+    for (size_t i = 0; i < arr->count; i++) {
+        if (arr->items[i].handle == conn_handle) return &arr->items[i];
+    }
+    return NULL;
+}
+
+device_context_t* dca_find_by_addr(device_context_array_t* arr, const bdAddr_t* addr) {
+    for (size_t i = 0; i < arr->count; i++) {
+        if (memcmp(arr->items[i].address, addr->address, MAC_ADDR_LEN) == 0) return &arr->items[i];
+    }
+    return NULL;
+}
+
+bool dca_remove(device_context_array_t* arr, const bleConnHandle conn_handle) {
+    for (size_t i = 0; i < arr->count; i++) {
+        if (arr->items[i].handle == conn_handle) {
+            pthread_mutex_destroy(&arr->items[i].lock);
+            pthread_cond_destroy(&arr->items[i].cond);
+
+            for (size_t j = i + 1; j < arr->count; j++) {
+                arr->items[j - 1] = arr->items[j];
+            }
+
+            arr->count--;
+            return true;
+        }
+    }
+    return false;
+}
+
+void dca_free(device_context_array_t* arr) {
+    for (size_t i = 0; i < arr->count; i++) {
+        pthread_mutex_destroy(&arr->items[i].lock);
+        pthread_cond_destroy(&arr->items[i].cond);
+    }
+    free(arr->items);
+}

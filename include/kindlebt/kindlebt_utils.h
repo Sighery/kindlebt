@@ -35,6 +35,12 @@ void setGattBlobFromBytes(
 void freeGattBlob(bleGattCharacteristicsValue_t* chars_value);
 char* utilsDumpServer(bleGattsService_t* server, char* log_buff, size_t* size, size_t* offset);
 
+device_context_t* dca_add_new(device_context_array_t* arr);
+device_context_t* dca_find_by_handle(device_context_array_t* arr, const bleConnHandle conn_handle);
+device_context_t* dca_find_by_addr(device_context_array_t* arr, const bdAddr_t* addr);
+bool dca_remove(device_context_array_t* arr, const bleConnHandle conn_handle);
+void dca_free(device_context_array_t* arr);
+
 #ifdef __cplusplus
 }
 #endif

@@ -93,33 +93,36 @@ status_t bleDeregisterGattClient(sessionHandle session_handle) {
 }
 
 status_t bleDiscoverAllServices(sessionHandle session_handle, bleConnHandle conn_handle) {
+    device_context_t* ctx = dca_find_by_handle(&devices_context, conn_handle);
+    if (!ctx) {
+        log_error("Couldn't find device context for conn_handle %p", conn_handle);
+        return ACE_STATUS_UNINITIALIZED;
+    }
+
     status_t services_status = shim_bleDiscoverAllServices(session_handle, conn_handle);
     if (services_status != ACE_STATUS_OK) return services_status;
 
-    status_t cond_status =
-        waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_discovered);
-
-    return cond_status;
+    return waitForCondition(&ctx->lock, &ctx->cond, &ctx->gattc_discovered);
 }
 
 status_t bleGetDatabase(
     bleConnHandle conn_handle, bleGattsService_t** services_out, uint32_t* services_count
 ) {
+    device_context_t* ctx = dca_find_by_handle(&devices_context, conn_handle);
+    if (!ctx) {
+        log_error("Couldn't find device context for conn_handle %p", conn_handle);
+        return ACE_STATUS_UNINITIALIZED;
+    }
+
+    pthread_mutex_lock(&ctx->lock);
+    ctx->gattdb_out = services_out;
+    ctx->gattdb_count_out = services_count;
+    pthread_mutex_unlock(&ctx->lock);
+
     status_t db_status = shim_bleGetDatabase(conn_handle);
     if (db_status != ACE_STATUS_OK) return db_status;
 
-    status_t cond_status =
-        waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.got_gatt_db);
-
-    if (cond_status != ACE_STATUS_OK) return cond_status;
-
-    *services_count = gNo_svc;
-    status_t clone_status = bleCloneGattService(services_out, pGgatt_service, gNo_svc);
-
-    if (clone_status != ACE_STATUS_OK) return clone_status;
-
-    // Clean up the temporary local copy
-    return bleCleanupGattService(pGgatt_service, gNo_svc);
+    return waitForCondition(&ctx->lock, &ctx->cond, &ctx->gattdb_retrieved);
 }
 
 status_t bleCloneGattService(
@@ -136,19 +139,43 @@ status_t bleConnect(
     sessionHandle session_handle, bleConnHandle* conn_handle, bdAddr_t* p_device,
     bleConnParam_t conn_param, bleConnRole_t conn_role, bleConnPriority_t conn_priority
 ) {
+    device_context_t* ctx = dca_add_new(&devices_context);
+    memcpy(ctx->address, p_device->address, MAC_ADDR_LEN);
+
     status_t conn_status =
         aceBt_bleConnect(session_handle, p_device, conn_param, conn_role, false, conn_priority);
     if (conn_status != ACE_STATUS_OK) return conn_status;
 
-    status_t cond_status =
-        waitForCondition(&callback_vars_lock, &callback_vars_cond, &callback_vars.gattc_connected);
+    status_t cond_status = waitForCondition(&ctx->lock, &ctx->cond, &ctx->gattc_connected);
+    if (cond_status != ACE_STATUS_OK) return cond_status;
 
-    if (cond_status == ACE_STATUS_OK) *conn_handle = ble_conn_handle;
+    pthread_mutex_lock(&ctx->lock);
+    *conn_handle = ctx->handle;
+    pthread_mutex_unlock(&ctx->lock);
 
-    return cond_status;
+    return ACE_STATUS_OK;
 }
 
-status_t bleDisconnect(bleConnHandle conn_handle) { return aceBT_bleDisconnect(conn_handle); }
+status_t bleDisconnect(bleConnHandle conn_handle) {
+    device_context_t* ctx = dca_find_by_handle(&devices_context, conn_handle);
+    if (!ctx) {
+        log_error("Couldn't find device context for conn_handle %p", conn_handle);
+        return ACE_STATUS_UNINITIALIZED;
+    }
+
+    status_t disconnect_status = aceBT_bleDisconnect(conn_handle);
+    if (disconnect_status != ACE_STATUS_OK) return disconnect_status;
+
+    status_t cond_status = waitForCondition(&ctx->lock, &ctx->cond, &ctx->gattc_disconnected);
+    if (cond_status != ACE_STATUS_OK) return cond_status;
+
+    bool dca_status = dca_remove(&devices_context, conn_handle);
+    if (dca_status == false) {
+        log_warn("Couldn't delete %p from the devices context array", conn_handle);
+    }
+
+    return ACE_STATUS_OK;
+}
 
 status_t bleReadCharacteristic(
     sessionHandle session_handle, bleConnHandle conn_handle,

@@ -222,6 +222,8 @@ typedef aceBT_bleGattClientCallbacks_t bleGattClientCallbacks_t;
 /**
  * @brief Internal struct for certain Bluetooth conditions
  *
+ * @deprecated Mostly replaced by @ref device_context_t and @ref device_context_array_t.
+ *
  * Most of the Bluetooth operations are asynchronous, even if the API call returns
  * immediately. This is because the API call return just indicates whether the request
  * was made successfully or not. To know whether the Bluetooth hardware completed your
@@ -241,19 +243,92 @@ typedef struct {
 } bleCallbackVars_t;
 
 /**
+ * @brief Internal struct for certain Bluetooth conditions during a BLE connection
+ *
+ * Most of the Bluetooth operations are asynchronous, even if the API call returns
+ * immediately. This is because the API call return just indicates whether the request
+ * was made successfully or not. To know whether the Bluetooth hardware completed your
+ * request (or failed to), you'll need to sign up for the different callbacks.
+ *
+ * For some of these operations, kindlebt will set up its own callbacks and wait for the
+ * condition, this way we can provide a synchronous behaviour to a few of the API calls.
+ *
+ * Additionally, when we need to share data between a callback and the public API, we'll
+ * use this common context to pass the data around.
+ */
+typedef struct {
+    /** BLE connection handle, used for context retrieval after a BLE connection */
+    bleConnHandle handle;
+    /** BLE connection address, used for context retrieval before a BLE connection */
+    uint8_t address[MAC_ADDR_LEN];
+    /** Internal lock */
+    pthread_mutex_t lock;
+    /** Internal condition flag */
+    pthread_cond_t cond;
+    /** BLE connection has GATT Client has been established */
+    bool gattc_connected;
+    /** BLE connection has been disconnected */
+    bool gattc_disconnected;
+    /** Services for the BLE connection have been discovered */
+    bool gattc_discovered;
+    /** GATT Services (DB) for the BLE connection have been retrieved.
+     * Paired with @ref gattdb_count and @ref gattdb_count_out.
+     */
+    bool gattdb_retrieved;
+    /** Paired with @ref gattdb_count_out, the services will be written out */
+    bleGattsService_t** gattdb_out;
+    /** Paired with @ref gattdb_out, the count for services will be written out */
+    uint32_t* gattdb_count_out;
+} device_context_t;
+
+/**
+ * @brief Internal dynamic array struct for devices context during a BLE connection.
+ *
+ * Since we may have multiple connections at once, we'll use this dynamic array to keep
+ * track of all connections, and remove them once the connection is closed.
+ *
+ * @sa device_context_t.
+ */
+typedef struct {
+    device_context_t* items;
+    size_t count;
+    size_t capacity;
+} device_context_array_t;
+
+/**
+ * @brief Internal @ref device_context_array_t
+ *
+ * @sa device_context_t
+ */
+extern device_context_array_t devices_context;
+
+/**
  * @brief Internal @ref bleCallbackVars_t
+ *
+ * @deprecated Mostly replaced by @ref devices_context.
  */
 extern bleCallbackVars_t callback_vars;
 /**
  * @brief Internal number of GATT services, often paired with @ref pGgatt_service
+ *
+ * @deprecated Replaced by @ref device_context_t. When calling @ref bleGetDatabase, the
+ * it will set @ref device_context_t.gattdb_out and @ref device_context_t.gattdb_count_out
+ * for the callback to write out the data directly to the pointers provided by the caller.
  */
 extern uint32_t gNo_svc;
 /**
  * @brief Internal reference to a GATT service
+ *
+ * @deprecated Replaced by @ref device_context_t. When calling @ref bleGetDatabase, the
+ * it will set @ref device_context_t.gattdb_out and @ref device_context_t.gattdb_count_out
+ * for the callback to write out the data directly to the pointers provided by the caller.
  */
 extern bleGattsService_t* pGgatt_service;
 /**
  * @brief Internal BLE connection handle
+ *
+ * @deprecated Replaced by @ref device_context_t. After calling @ref bleConnect, the
+ * @ref bleConnStateChangedCallback callback will write back the BLE connection handle.
  */
 extern bleConnHandle ble_conn_handle;
 
