@@ -2,7 +2,7 @@
  * @file kindlebt_defines.h
  * @brief Internal definitions
  *
- * This file contains some internal structures used in kindlebt as well as some typedefs
+ * This file contains some internal structures used in KindleBT as well as some typedefs
  * of internal \c darkroot data structures. For more information on some of these types,
  * you should get the \c darkroot subproject from the Meson project, and from there you
  * can check it out locally and look through it.
@@ -209,11 +209,11 @@ typedef aceBT_bleGattClientCallbacks_t bleGattClientCallbacks_t;
 
 /**
  * @internal
- * @defgroup KINDLEBT_DS Kindlebt Data Structures
- * @brief kindlebt-specific data structures
+ * @defgroup KINDLEBT_DS KindleBT Data Structures
+ * @brief KindleBT-specific data structures
  *
  * @warning As an application, you shouldn't need to use or interact with any of these
- * structs/variables. These are all for use within the internal kindlebt code to provide
+ * structs/variables. These are all for use within the internal KindleBT code to provide
  * the API. However, they are documented here since it can help contributors.
  *
  * @{
@@ -229,7 +229,7 @@ typedef aceBT_bleGattClientCallbacks_t bleGattClientCallbacks_t;
  * was made successfully or not. To know whether the Bluetooth hardware completed your
  * request (or failed to), you'll need to sign up for different callbacks.
  *
- * For some of these operations, kindlebt will set up its own callbacks and wait for the
+ * For some of these operations, KindleBT will set up its own callbacks and wait for the
  * condition, this way we can provide a synchronous behaviour to a few of the API calls.
  */
 typedef struct {
@@ -250,7 +250,7 @@ typedef struct {
  * was made successfully or not. To know whether the Bluetooth hardware completed your
  * request (or failed to), you'll need to sign up for the different callbacks.
  *
- * For some of these operations, kindlebt will set up its own callbacks and wait for the
+ * For some of these operations, KindleBT will set up its own callbacks and wait for the
  * condition, this way we can provide a synchronous behaviour to a few of the API calls.
  *
  * Additionally, when we need to share data between a callback and the public API, we'll

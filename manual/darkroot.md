@@ -1,13 +1,13 @@
 Darkroot  {#darkroot}
 =====================
 
-There are some parts of the `kindlebt` codebase that will remain
+There are some parts of the KindleBT codebase that will remain
 undocumented. These parts mainly have to do with existing data structures
 used by the underlying Bluetooth library.
 
 When developing, or debugging `kindlebt`, you might need to reference some of
 these undocumented parts. For this, you should go through the **Building
-kindlebt** section of the previous [Building][] document. Running
+KindleBT** section of the previous [Building][] document. Running
 `meson setup` is paramount to this.
 
 Once you have done so, subprojects will be set up, and then you can find

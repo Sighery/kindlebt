@@ -34,6 +34,12 @@ $extrastylesheet
   DoxygenAwesomeDarkModeToggle.init();
   DoxygenAwesomeParagraphLink.init();
 </script>
+<!-- Fix since the style of code broke inside warning tags -->
+<style>
+  dl.warning .tt, dl.attention .tt, dl.important .tt {
+    background-color: var(--code-background);
+}
+</style>
 </head>
 <body>
 <!--BEGIN DISABLE_INDEX-->

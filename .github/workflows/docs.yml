@@ -12,6 +12,7 @@ on:
       - 'src/**'
       - 'include/**'
       - 'examples/**'
+      - 'manual/**'
 
 permissions:
   contents: read
@@ -23,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DOXYGEN_DOWNLOAD: https://github.com/doxygen/doxygen/releases/download/Release_1_13_2/doxygen-1.13.2.linux.bin.tar.gz
+  DOXYGEN_DOWNLOAD: https://github.com/doxygen/doxygen/releases/download/Release_1_15_0/doxygen-1.15.0.linux.bin.tar.gz
 
 jobs:
   build:
@@ -41,8 +42,8 @@ jobs:
       - name: Install Doxygen
         run: |
           wget -nv $DOXYGEN_DOWNLOAD
-          tar -xaf doxygen-1.13.2.linux.bin.tar.gz
-          cd doxygen-1.13.2/
+          tar -xaf doxygen-1.15.0.linux.bin.tar.gz
+          cd doxygen-1.15.0/
           sudo make install
 
       - name: Generate docs

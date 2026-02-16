@@ -41,7 +41,7 @@ recommended you get the latest from their releases tab and unpack.
 koxtoolchain builds will often fail due to flaky network requests, and even
 when successful, will take around 30 minutes to complete.
 
-## Building kindlebt
+## Building KindleBT
 
 Once you have the SDK set up, you'll need to set up Meson. The steps for your
 system will depend, so refer to the [Meson installation][]. If using Nix, the
